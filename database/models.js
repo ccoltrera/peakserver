@@ -28,12 +28,12 @@ var RangePeak = connection.define('range_peaks', RangePeakMeta.attributes, Range
 var Range = connection.define('ranges', RangeMeta.attributes, RangeMeta.options);
 var User = connection.define('users', UserMeta.attributes, UserMeta.options);
 var Team = connection.define('teams', TeamMeta.attributes, TeamMeta.options);
-var Organization = connection.define('srganizations', OrganizationMeta.attributes, OrganizationMeta.options);
+var Organization = connection.define('organizations', OrganizationMeta.attributes, OrganizationMeta.options);
 
 // define relationships between models
 Organization.hasMany(Team);
 
-Team.hasMany(User, {as: 'Members'});
+Team.hasMany(User);
 Team.hasMany(Endeavor);
 
 User.hasMany(Range);
@@ -43,9 +43,9 @@ Range.hasMany(RangePeak);
 
 RangePeak.hasOne(RangePeakSA);
 RangePeak.hasOne(RangePeakFB);
-RangePeak.hasOne(User, {as: 'Creator'});
+// RangePeak.hasOne(User, {as: 'Creator'}); // don't bother to track this?
 
-RangePeakFB.hasOne(User, {as: 'Giver'});
+// RangePeakFB.hasOne(User, {as: 'Giver'}); // just use the mentor
 
 Endeavor.hasMany(EndeavorPeak);
 
@@ -54,7 +54,7 @@ EndeavorPeak.hasOne(User, {as: 'Creator'});
 EndeavorPeak.hasOne(RangePeakSA);
 EndeavorPeak.hasOne(RangePeakFB);
 
-EndeavorPeakFB.hasOne(User, {as: 'Giver'});
+// EndeavorPeakFB.hasOne(User, {as: 'Giver'}); //
 
 
 
