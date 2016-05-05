@@ -1,5 +1,5 @@
 'use strict';
-import Sequelize from 'sequelize';
+var Sequelize = require('sequelize');
 
 var attributes = {
   name: {
@@ -26,7 +26,7 @@ var options = {
   freezeTableName: true
 };
 
-export default {
+module.exports = {
   attributes: attributes,
   options: options
 };

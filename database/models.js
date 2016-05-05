@@ -1,21 +1,21 @@
 'use strict';
-import Sequelize from 'sequelize';
+var Sequelize = require('sequelize');
 
-// import connection to db
-import connection from './connection';
+// require connection to db
+var connection = require('./connection');
 
-// import meta configs for models
-import EndeavorPeakSAMeta from './models/EndeavorPeakSA';
-import EndeavorPeakFBMeta from './models/EndeavorPeakFB';
-import EndeavorPeakMeta from './models/EndeavorPeak';
-import EndeavorMeta from './models/Endeavor';
-import RangePeakSAMeta from './models/RangePeakSA';
-import RangePeakFBMeta from './models/RangePeakFB';
-import RangePeakMeta from './models/RangePeak';
-import RangeMeta from './models/Range';
-import UserMeta from './models/User';
-import TeamMeta from './models/Team';
-import OrganizationMeta from './models/Organization';
+// require meta configs for models
+var EndeavorPeakSAMeta = require('./models/EndeavorPeakSA');
+var EndeavorPeakFBMeta = require('./models/EndeavorPeakFB');
+var EndeavorPeakMeta = require('./models/EndeavorPeak');
+var EndeavorMeta = require('./models/Endeavor');
+var RangePeakSAMeta = require('./models/RangePeakSA');
+var RangePeakFBMeta = require('./models/RangePeakFB');
+var RangePeakMeta = require('./models/RangePeak');
+var RangeMeta = require('./models/Range');
+var UserMeta = require('./models/User');
+var TeamMeta = require('./models/Team');
+var OrganizationMeta = require('./models/Organization');
 
 // define all the models in the db
 var EndeavorPeakSA = connection.define('endeavor_peak_sas', EndeavorPeakSAMeta.attributes, EndeavorPeakSAMeta.options);
@@ -59,7 +59,7 @@ EndeavorPeak.hasOne(RangePeakFB);
 
 
 // export all models
-export default {
+module.exports = {
   EndeavorPeakSA: EndeavorPeakSA,
   EndeavorPeakFB: EndeavorPeakFB,
   EndeavorPeak: EndeavorPeak,

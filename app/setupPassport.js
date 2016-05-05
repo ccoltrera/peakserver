@@ -1,8 +1,8 @@
 'use strict';
-import passport from 'passport';
-import { Strategy } from 'passport-local';
-import bcrypt from 'bcrypt';
-import Model from '../database/models';
+var passport = require('passport');
+var { Strategy } = require('passport-local');
+var bcrypt = require('bcrypt');
+var Model = require('../database/models');
 
 passport.use(new Strategy(
   (email, password, done) => {
@@ -30,4 +30,4 @@ passport.use(new Strategy(
   }
 ));
 
-export default passport;
+module.exports = passport;
