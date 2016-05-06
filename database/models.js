@@ -32,8 +32,12 @@ var Organization = connection.define('organizations', OrganizationMeta.attribute
 
 // define relationships between models
 Organization.hasMany(Team);
+Organization.hasMany(User);
+Organization.hasOne(User, {as: 'Leader'});
 
 Team.hasMany(User);
+// for admin purposes
+Team.hasOne(User, {as: 'Leader'});
 Team.hasMany(Endeavor);
 
 User.hasMany(Range);
@@ -43,7 +47,7 @@ Range.hasMany(RangePeak);
 
 RangePeak.hasOne(RangePeakSA);
 RangePeak.hasOne(RangePeakFB);
-// RangePeak.hasOne(User, {as: 'Creator'}); // don't bother to track this?
+// RangePeak.hasOne(User, {as: 'Creator'}); // just track as self / mentor in string?
 
 // RangePeakFB.hasOne(User, {as: 'Giver'}); // just use the mentor
 
@@ -56,7 +60,7 @@ EndeavorPeak.hasOne(RangePeakFB);
 
 // EndeavorPeakFB.hasOne(User, {as: 'Giver'}); //
 
-
+connection.sync();
 
 // export all models
 module.exports = {

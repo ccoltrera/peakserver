@@ -8,7 +8,7 @@ gulp.task('default', ['test']);
 // test task
 gulp.task('test', () => {
   // grab ever js file in tests/
-  return gulp.src('./tests/*.js')
+  return gulp.src('./tests/api-tests.js')
   // pipe them to gulp wrapper on mocha test framework, with progress reporter
   .pipe( mocha({ 'reporter' : 'progress' }) );
 });
