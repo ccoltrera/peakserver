@@ -24,6 +24,8 @@ var improperUserInfo = {
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
+var address = 'http://localhost:3000';
+
 // Create the users needed for the tests
 before((done) => {
   models.User.findOrCreate({where: {email: 'c@colt.com', password: hashedPassword, salt: '$2a$10$somethingheretobeasalt'}})
@@ -45,7 +47,7 @@ describe('/auth', () => {
 
   describe('GET', () => {
     it('should return a JSON Web Token on proper credentials', function(done) {
-      chai.request('http://localhost:3000')
+      chai.request(address)
         .get('/auth')
         .query(properUserInfo)
         .end(function(err, res) {
@@ -58,7 +60,7 @@ describe('/auth', () => {
     });
 
     it('should reject improper credentials', function(done) {
-      chai.request('http://localhost:3000')
+      chai.request(address)
         .get('/auth')
         .query(improperUserInfo)
         .end(function(err, res) {
