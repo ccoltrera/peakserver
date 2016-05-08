@@ -15,7 +15,7 @@ var userObj1, userObj2, userObj3;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
-var address = 'http://localhost:3000';
+var address = 'http://localhost:3000/api';
 
 // Create the users needed for the tests
 before((done) => {
@@ -35,7 +35,7 @@ before((done) => {
 });
 
 before((done) => {
-  models.User.create({email: 'f@colt.com', password: hashedPassword, salt: '$2a$10$somethingheretobeasalt'})
+  models.User.create({email: 'm@colt.com', password: hashedPassword, salt: '$2a$10$somethingheretobeasalt'})
     .then((user) => {
       userObj3 = user;
       done();
@@ -68,16 +68,16 @@ describe('/users', () => {
     it('should create a new user in the db, if no matching email exists, and return the user', (done) => {
       chai.request(address)
         .post('/users')
-        .send({email: 'm@colt.com', password: 'password'})
+        .send({email: 'a@buch.com', password: 'password'})
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body.email).to.eql('m@colt.com');
+          expect(res.body.email).to.eql('a@buch.com');
           expect(res.body.password).to.eql(null);
 
-          models.User.find({where: {email: 'm@colt.com'}})
+          models.User.find({where: {email: 'a@buch.com'}})
             .then((user) => {
               expect(user.dataValues).to.be.ok;
-              expect(user.dataValues.email).to.eql('m@colt.com');
+              expect(user.dataValues.email).to.eql('a@buch.com');
               expect(user.dataValues.salt).to.eql('$2a$10$somethingheretobeasalt');
               done();
             });
@@ -95,8 +95,24 @@ describe('/users', () => {
     });
   });
 
+  describe('GET', () => {
+    it('should return users that match the query string, with proper JWT', (done) => {
+      chai.request(address)
+        .get('/users')
+        .set('Authorization', 'Bearer ' + goodToken)
+        .query({email: {$like: '%@colt.com'}})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          console.log(res.body);
+          expect(res.body.length).to.eql(3);
+
+          done();
+        });
+    });
+  });
+
   // /users/:user
-  describe('/:user', ()=> {
+  describe('/:user', () => {
 
     // /users/:user GET
     describe('GET', () => {
@@ -175,7 +191,7 @@ describe('/users', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            models.User.find({where: {email: 'f@colt.com'}})
+            models.User.find({where: {email: 'm@colt.com'}})
               .then((user) => {
                 expect(user).to.not.be.ok;
                 done();

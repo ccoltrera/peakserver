@@ -6,7 +6,7 @@ var generateToken = require('../auth/generateToken');
 module.exports = (app) => {
   app.use(passport.initialize());
 
-  app.get('/auth',
+  app.get('/api/auth',
     passport.authenticate(
       'local', {
         session: false

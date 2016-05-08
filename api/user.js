@@ -7,13 +7,11 @@ var salt = process.env.SALT || '$2a$10$somethingheretobeasalt';
 
 module.exports = (app) => {
 
-  app.post('/users', (req, res) => {
+  app.post('/api/users', (req, res) => {
     var newUser = req.body;
 
     newUser.salt = salt;
     newUser.password = bcrypt.hashSync(newUser.password, newUser.salt);
-
-    console.log(newUser);
 
     models.User.create(newUser)
       .then((user) => {
@@ -30,7 +28,14 @@ module.exports = (app) => {
       });
   });
 
-  app.get('/users/:user', jwtAuth, (req, res) => {
+  app.get('/api/users', jwtAuth, (req, res) => {
+    models.User.findAll({where: req.query})
+      .then((users) => {
+        res.status(200).json(users);
+      });
+  });
+
+  app.get('/api/users/:user', jwtAuth, (req, res) => {
     var userId = req.user.id;
     var searchId = req.params.user;
 
@@ -49,7 +54,7 @@ module.exports = (app) => {
       });
   });
 
-  app.post('/users/:user', jwtAuth, (req, res) => {
+  app.post('/api/users/:user', jwtAuth, (req, res) => {
     models.User.findById(req.user.id)
       .then((user) => {
         if (user) {
@@ -69,7 +74,7 @@ module.exports = (app) => {
       });
   });
 
-  app.delete('/users/:user', jwtAuth, (req, res) => {
+  app.delete('/api/users/:user', jwtAuth, (req, res) => {
     console.log(req.user.id + ' === ' + req.params.user)
 
     if (req.user.id == req.params.user) {

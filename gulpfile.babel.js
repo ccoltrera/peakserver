@@ -10,7 +10,7 @@ gulp.task('test', () => {
   // grab ever js file in tests/
   return gulp.src('./tests/api-tests.js')
   // pipe them to gulp wrapper on mocha test framework, with progress reporter
-  .pipe( mocha({ 'reporter' : 'progress' }) );
+  .pipe( mocha() );
 });
 
 // watch task

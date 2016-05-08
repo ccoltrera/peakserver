@@ -24,7 +24,7 @@ var improperUserInfo = {
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
-var address = 'http://localhost:3000';
+var address = 'http://localhost:3000/api';
 
 // Create the users needed for the tests
 before((done) => {
