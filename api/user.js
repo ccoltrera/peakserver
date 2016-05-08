@@ -1,37 +1,71 @@
 'use strict';
+import bcrypt from 'bcrypt';
 
 var models = require('../database/models');
 var jwtAuth = require('../auth/jwtAuth');
+var salt = process.env.SALT || '$2a$10$somethingheretobeasalt';
 
 module.exports = (app) => {
 
-  app.get('/user', jwtAuth, (req, res) => {
-    var searchID = req.query.id || req.user.id;
+  app.post('/users', (req, res) => {
+    var newUser = req.body;
 
-    models.User.findOne({where: {id: searchID}})
+    newUser.salt = salt;
+    newUser.password = bcrypt.hashSync(newUser.password, newUser.salt);
+
+    console.log(newUser);
+
+    models.User.create(newUser)
       .then((user) => {
-        if (user == null) {
-          res.sendStatus(401);
+        // remove sensitive info
+        user.password = null;
+        user.salt = null;
+
+        res.status(200).json(user);
+      })
+      .catch((err) => {
+        if (err.errors[0].message === 'email must be unique') {
+          res.sendStatus(409);
         }
-        else {
+      });
+  });
+
+  app.get('/users/:user', jwtAuth, (req, res) => {
+    var userId = req.user.id;
+    var searchId = req.params.user;
+
+    models.User.findById(searchId)
+      .then((user) => {
+        if (user) {
           // remove sensitive info
           user.password = null;
           user.salt = null;
 
           res.status(200).json(user);
         }
+        else {
+          res.sendStatus(404);
+        }
       });
   });
 
-  app.post('/user', jwtAuth, (req, res) => {
-    models.User.update(req.body, {where: {id: req.user.id}})
+  app.post('/users/:user', jwtAuth, (req, res) => {
+    models.User.findById(req.user.id)
       .then((user) => {
-        if (user == null) {
-          res.sendStatus(401);
+        if (user) {
+          user.update(req.body)
+            .then((user) => {
+              user.password = null;
+              user.salt = null;
+
+              res.status(200).json(user);
+            });
         }
+
         else {
-          res.status(200).json(user);
+          res.sendStatus(404);
         }
+
       });
   });
 
