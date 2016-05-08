@@ -11,7 +11,7 @@ import models from '../database/models';
 
 import app from '../server';
 
-var userObj1, userObj2;
+var userObj1, userObj2, userObj3;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -34,6 +34,14 @@ before((done) => {
     });
 });
 
+before((done) => {
+  models.User.create({email: 'f@colt.com', password: hashedPassword, salt: '$2a$10$somethingheretobeasalt'})
+    .then((user) => {
+      userObj3 = user;
+      done();
+    });
+});
+
 // Clean up the database
 after((done) => {
   models.User.destroy({where: {}})
@@ -45,12 +53,13 @@ after((done) => {
 // /users
 describe('/users', () => {
 
-  var goodToken, expiredToken, badToken;
+  var goodToken, expiredToken, tokenToDelete;
 
   // Generate tokens for tests
   before((done) => {
     goodToken = jwt.sign({id: userObj1.id}, 'server secret', {expiresIn: '120m'});
     expiredToken = jwt.sign({id: userObj1.id}, 'server secret', {expiresIn: '0s'});
+    tokenToDelete = jwt.sign({id: userObj3.id}, 'server secret', {expiresIn: '120s'});
     done();
   });
 
@@ -157,6 +166,33 @@ describe('/users', () => {
       });
     });
 
+    // /users/:user DEL
+    describe('DELETE', () => {
+      it('should delete a users own entry in the db', (done) => {
+        chai.request(address)
+          .del('/users/' + userObj3.id)
+          .set('Authorization', 'Bearer ' + tokenToDelete)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+
+            models.User.find({where: {email: 'f@colt.com'}})
+              .then((user) => {
+                expect(user).to.not.be.ok;
+                done();
+              });
+          });
+      });
+
+      it('should send 401 if attempt is made to delete another user', (done) => {
+        chai.request(address)
+          .del('/users/' + userObj2.id)
+          .set('Authorization', 'Bearer ' + goodToken)
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+          });
+      });
+    });
   });
 });
 

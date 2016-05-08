@@ -69,4 +69,19 @@ module.exports = (app) => {
       });
   });
 
+  app.delete('/users/:user', jwtAuth, (req, res) => {
+    console.log(req.user.id + ' === ' + req.params.user)
+
+    if (req.user.id == req.params.user) {
+      models.User.destroy({where: {id: req.user.id}})
+        .then(() => {
+          res.sendStatus(200);
+        });
+    }
+
+    else {
+      res.sendStatus(401);
+    }
+  });
+
 }
