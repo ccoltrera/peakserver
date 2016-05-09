@@ -8,23 +8,35 @@ var salt = process.env.SALT || '$2a$10$somethingheretobeasalt';
 module.exports = (app) => {
 
   app.post('/api/users', (req, res) => {
-    var newUser = req.body;
+    var mentor = req.body.mentor;
+    var newUserInstance;
 
-    newUser.salt = salt;
-    newUser.password = bcrypt.hashSync(newUser.password, newUser.salt);
+    req.body.mentor = null;
+    req.body.salt = salt;
+    req.body.password = bcrypt.hashSync(req.body.password, req.body.salt);
 
-    models.User.create(newUser)
+    models.User.create(req.body)
       .then((user) => {
         // remove sensitive info
         user.password = null;
         user.salt = null;
 
-        res.status(200).json(user);
+        newUserInstance = user;
+
+        if (mentor) {
+          return user.setMentor(mentor);
+        }
+        else {
+          return;
+        }
       })
       .catch((err) => {
         if (err.errors[0].message === 'email must be unique') {
           res.sendStatus(409);
         }
+      })
+      .then(() => {
+        res.status(200).json(newUserInstance);
       });
   });
 
@@ -55,22 +67,37 @@ module.exports = (app) => {
   });
 
   app.post('/api/users/:user', jwtAuth, (req, res) => {
+    var mentor = req.body.mentor;
+    var userInstance;
+
+    req.body.mentor = null;
+
     models.User.findById(req.user.id)
       .then((user) => {
         if (user) {
-          user.update(req.body)
-            .then((user) => {
-              user.password = null;
-              user.salt = null;
-
-              res.status(200).json(user);
-            });
+          return user.update(req.body)
         }
 
         else {
           res.sendStatus(404);
         }
 
+      })
+      .then((user) => {
+        user.password = null;
+        user.salt = null;
+
+        userInstance = user;
+
+        if (mentor) {
+          return user.setMentor(mentor);
+        }
+        else {
+          return;
+        }
+      })
+      .then(() => {
+        res.status(200).json(userInstance);
       });
   });
 

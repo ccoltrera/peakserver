@@ -23,7 +23,7 @@ var userObj1 = {
 
 var rangeObj1 = {
   name: 'Node Unit Tests'
-}
+};
 
 // Create user with ranges needed for tests
 before((done) => {
@@ -34,7 +34,9 @@ before((done) => {
     })
     .then((range) => {
       range1 = range;
-      return user1.addRange(range1);
+      var id = range1.id
+      return user1.addRange(id);
+      // return user1.update({RangeId: range1.id})
     })
     .then(() => {
       done();

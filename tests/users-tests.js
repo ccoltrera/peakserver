@@ -33,6 +33,18 @@ var userObj3 = {
   salt: '$2a$10$somethingheretobeasalt'
 };
 
+var userObj4 = {
+  email: '4@user.com',
+  password: hashedPassword,
+  salt: '$2a$10$somethingheretobeasalt'
+}
+
+var userObj5 = {
+  email: '5@user.com',
+  password: hashedPassword,
+  salt: '$2a$10$somethingheretobeasalt'
+}
+
 // Create users needed for tests
 before((done) => {
   models.User.create(userObj1)
@@ -82,16 +94,16 @@ describe('/api/users', () => {
     it('should create a new user in the db, if no matching email exists, and return the user', (done) => {
       chai.request(address)
         .post('/users')
-        .send({email: '4@user.com', password: 'password'})
+        .send({email: userObj4.email, password: 'password'})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.email).to.eql('4@user.com');
           expect(res.body.password).to.eql(null);
 
-          models.User.find({where: {email: '4@user.com'}})
+          models.User.find({where: {email: userObj4.email}})
             .then((user) => {
               expect(user.dataValues).to.be.ok;
-              expect(user.dataValues.email).to.eql('4@user.com');
+              expect(user.dataValues.email).to.eql(userObj4.email);
               expect(user.dataValues.salt).to.eql('$2a$10$somethingheretobeasalt');
               done();
             });
@@ -106,6 +118,25 @@ describe('/api/users', () => {
           expect(res).to.have.status(409);
           done();
         });
+    });
+
+    it('should properly associate another user as mentor, if ID sent in JSON', (done) => {
+      chai.request(address)
+        .post('/users')
+        .send({email: userObj5.email, password: 'password', mentor: user1.id})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+
+          models.User.find({where: {email: userObj5.email}})
+            .then((user) => {
+              expect(user.mentor).to.not.be.ok;
+              return user.getMentor();
+            })
+            .then((mentor) => {
+              expect(mentor.dataValues.email).to.eql(user1.email);
+              done();
+            })
+        })
     });
   });
 
@@ -175,7 +206,7 @@ describe('/api/users', () => {
 
     // /users/:user POST
     describe('POST', () => {
-      it('should change user\'s own info based on json, with proper JWT, send updated user', (done) => {
+      it('should change user\'s own info based on JSON, with proper JWT, send updated user', (done) => {
         chai.request(address)
           .post('/users/' + user1.id)
           .set('Authorization', 'Bearer ' + user1Token)
@@ -189,6 +220,22 @@ describe('/api/users', () => {
               .then((user) => {
                 expect(user.dataValues.firstName).to.eql('C');
                 expect(user.dataValues.lastName).to.eql('Colt');
+                done();
+              });
+          });
+      });
+
+      it('should associate another user as mentor when included in JSON', (done) => {
+        chai.request(address)
+          .post('/users/' + user1.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .send({mentor: user2.id})
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+
+            user1.getMentor()
+              .then((mentor) => {
+                expect(mentor.dataValues.email).to.eql(user2.email);
                 done();
               });
           });
