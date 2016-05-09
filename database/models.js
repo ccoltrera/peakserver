@@ -18,17 +18,17 @@ var TeamMeta = require('./models/Team');
 var OrganizationMeta = require('./models/Organization');
 
 // define all the models in the db
-var EndeavorPeakSA = connection.define('endeavor_peak_sas', EndeavorPeakSAMeta.attributes, EndeavorPeakSAMeta.options);
-var EndeavorPeakFB = connection.define('endeavor_peak_fbs', EndeavorPeakFBMeta.attributes, EndeavorPeakFBMeta.options);
-var EndeavorPeak = connection.define('endeavor_peaks', EndeavorPeakMeta.attributes, EndeavorPeakMeta.options);
-var Endeavor = connection.define('endeavors', EndeavorMeta.attributes, EndeavorMeta.options);
-var RangePeakSA = connection.define('range_peak_sas', RangePeakSAMeta.attributes, RangePeakSAMeta.options);
-var RangePeakFB = connection.define('range_peak_fbs', RangePeakFBMeta.attributes, RangePeakFBMeta.options);
-var RangePeak = connection.define('range_peaks', RangePeakMeta.attributes, RangePeakMeta.options);
-var Range = connection.define('ranges', RangeMeta.attributes, RangeMeta.options);
-var User = connection.define('users', UserMeta.attributes, UserMeta.options);
-var Team = connection.define('teams', TeamMeta.attributes, TeamMeta.options);
-var Organization = connection.define('organizations', OrganizationMeta.attributes, OrganizationMeta.options);
+var EndeavorPeakSA = connection.define('EndeavorPeakSA', EndeavorPeakSAMeta.attributes, EndeavorPeakSAMeta.options);
+var EndeavorPeakFB = connection.define('EndeavorPeakFB', EndeavorPeakFBMeta.attributes, EndeavorPeakFBMeta.options);
+var EndeavorPeak = connection.define('EndeavorPeak', EndeavorPeakMeta.attributes, EndeavorPeakMeta.options);
+var Endeavor = connection.define('Endeavor', EndeavorMeta.attributes, EndeavorMeta.options);
+var RangePeakSA = connection.define('RangePeakSA', RangePeakSAMeta.attributes, RangePeakSAMeta.options);
+var RangePeakFB = connection.define('RangePeakFB', RangePeakFBMeta.attributes, RangePeakFBMeta.options);
+var RangePeak = connection.define('RangePeak', RangePeakMeta.attributes, RangePeakMeta.options);
+var Range = connection.define('Range', RangeMeta.attributes, RangeMeta.options);
+var User = connection.define('User', UserMeta.attributes, UserMeta.options);
+var Team = connection.define('Team', TeamMeta.attributes, TeamMeta.options);
+var Organization = connection.define('Organization', OrganizationMeta.attributes, OrganizationMeta.options);
 
 // define relationships between models
 Organization.hasMany(Team);

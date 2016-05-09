@@ -6,13 +6,13 @@ var bodyParser = require('body-parser');
 var app = Express();
 
 var authAPI = require('./api/auth'),
-  orgAPI = require('./api/org'),
-  teamAPI = require('./api/team'),
-  userAPI = require('./api/user'),
-  endeavorAPI = require('./api/endeavor'),
-  rangeAPI = require('./api/range'),
-  peakAPI = require('./api/peak'),
-  feedbackAPI = require('./api/feedback');
+  orgAPI = require('./api/orgs'),
+  teamAPI = require('./api/teams'),
+  userAPI = require('./api/users'),
+  endeavorAPI = require('./api/endeavors'),
+  rangeAPI = require('./api/ranges'),
+  peakAPI = require('./api/peaks'),
+  feedbackAPI = require('./api/fb');
 
 
 app.use(bodyParser.json());

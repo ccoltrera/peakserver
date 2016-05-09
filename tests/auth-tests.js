@@ -11,39 +11,44 @@ import models from '../database/models';
 
 import app from '../server';
 
-var userObj1;
-
 var properUserInfo = {
-  username: 'c@colt.com',
+  username: '1@auth.com',
   password: 'password' };
 
 var improperUserInfo = {
-  username: 'c@colt.com',
+  username: '1@auth.com',
   password: 'notPassword' };
-
-
-var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
 var address = 'http://localhost:3000/api';
 
-// Create the users needed for the tests
+var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
+
+var userObj1 = {
+  email: '1@auth.com',
+  password: hashedPassword,
+  salt: '$2a$10$somethingheretobeasalt'
+}
+
+var user1;
+
+// Create users needed for tests
 before((done) => {
-  models.User.findOrCreate({where: {email: 'c@colt.com', password: hashedPassword, salt: '$2a$10$somethingheretobeasalt'}})
+  models.User.findOrCreate({where: userObj1})
     .then((users) => {
-      userObj1 = users[0].dataValues;
+      user1 = users[0].dataValues;
       done();
     });
 });
 
-// Clean up the database
+// Clean up database
 after((done) => {
-  models.User.destroy({where: {email: 'c@colt.com'}})
+  models.User.destroy({where: {email: {$like: '%@auth.com'}}})
   .then(() => {
       done();
     });
 });
 
-describe('/auth', () => {
+describe('/api/auth', () => {
 
   describe('GET', () => {
     it('should return a JSON Web Token on proper credentials', function(done) {

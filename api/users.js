@@ -75,7 +75,6 @@ module.exports = (app) => {
   });
 
   app.delete('/api/users/:user', jwtAuth, (req, res) => {
-    console.log(req.user.id + ' === ' + req.params.user)
 
     if (req.user.id == req.params.user) {
       models.User.destroy({where: {id: req.user.id}})

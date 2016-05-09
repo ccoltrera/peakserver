@@ -11,8 +11,9 @@ import models from '../database/models';
 
 import app from '../server';
 
-import userTests from './user-tests';
 import authTests from './auth-tests';
+import usersTests from './users-tests';
+import rangesTests from './ranges-tests';
 
 var server;
 

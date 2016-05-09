@@ -3,7 +3,8 @@ var Sequelize = require('sequelize');
 
 var attributes = {
   name: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    allowNull: false
   },
   description: {
     type: Sequelize.STRING
