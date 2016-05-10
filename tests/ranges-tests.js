@@ -22,7 +22,11 @@ var userObj1 = {
 };
 
 var rangeObj1 = {
-  name: 'Node Unit Tests'
+  name: 'range1'
+};
+
+var rangeObj2 = {
+  name: 'range2'
 };
 
 // Create user with ranges needed for tests
@@ -57,12 +61,58 @@ after((done) => {
     });
 });
 
+after((done) => {
+  models.Range.destroy({where: {name: {$like: 'range%'}}})
+  .then(() => {
+      done();
+    });
+})
+
 // /api/users/:user/ranges
 describe('/api/users/:user/ranges', () => {
 
   // /api/users/:user/ranges GET
-  describe('GET', () => {
+  describe('POST', () => {
 
+    it('should add a range to the db and associate it with the user, with a JWT that matches', (done) => {
+      chai.request(address)
+        .post('/users/' + user1.id + '/ranges')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .send(rangeObj2)
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.name).to.eql(rangeObj2.name);
+
+          user1.getRanges()
+            .then((ranges) => {
+              expect(ranges.length).to.eql(2);
+
+              done();
+            })
+        });
+    });
+
+    it('should send a 401 status if the JWT does not match the user', (done) => {
+      chai.request(address)
+        .post('/users/' + (user1.id - 1) + '/ranges')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .send(rangeObj1)
+        .end((err, res) => {
+          expect(res).to.have.status(401);
+          done();
+        });
+    });
+
+    it('should send a 409 status if the range name is not unique for the user', (done) => {
+      chai.request(address)
+        .post('/users/' + user1.id + '/ranges')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .send(rangeObj1)
+        .end((err, res) => {
+          expect(res).to.have.status(409);
+          done();
+        });
+    });
   });
 
 });
