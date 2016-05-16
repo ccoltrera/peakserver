@@ -290,11 +290,41 @@ describe('/api/users/:user/ranges', () => {
     describe('DELETE', () => {
 
       it('should delete a range, if user matches JWT', (done) => {
+        chai.request(address)
+          .del('/users/' + (user3.id) + '/ranges/' + range4.id)
+          .set('Authorization', 'Bearer ' + user3Token)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+            models.Range.findById(range4.id)
+              .then((range) => {
+                expect(range).to.not.be.ok;
+                done();
+              });
+          });
+      });
 
+      it('should return 404 if the range does not exist', (done) => {
+        chai.request(address)
+          .del('/users/' + (user3.id) + '/ranges/' + (range3.id + 1000))
+          .set('Authorization', 'Bearer ' + user3Token)
+          .end((err, res) => {
+            expect(res).to.have.status(404);
+            done();
+          });
       });
 
       it('should return 401 if JWT does not match range owning user', (done) => {
-
+        chai.request(address)
+          .del('/users/' + (user1.id) + '/ranges/' + range1.id)
+          .set('Authorization', 'Bearer ' + user3Token)
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            models.Range.findById(range1.id)
+              .then((range) => {
+                expect(range).to.be.ok;
+                done();
+              });
+          });
       });
 
     });

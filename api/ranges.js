@@ -107,4 +107,33 @@ module.exports = (app) => {
     }
   });
 
+  app.delete('/api/users/:user/ranges/:range', jwtAuth, (req, res) => {
+    if (req.params.user == req.user.id) {
+      models.User
+        .findAll({
+          where: { id: req.params.user },
+          include: [{
+            model: models.Range,
+            where: { id: req.params.range }
+          }]
+        })
+        .then((users) => {
+          if (users.length) {
+            let range = users[0]['dataValues']['Ranges'][0];
+            range.destroy()
+              .then((range) => {
+                res.sendStatus(200);
+              });
+
+          }
+          else {
+            res.sendStatus(404);
+          }
+        });
+    }
+    else {
+      res.sendStatus(401);
+    }
+  });
+
 }
