@@ -16,31 +16,31 @@ var user1, user2, user3, user1Token, expiredToken, user3Token;
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
 var userObj1 = {
-  email: '1@user.com',
+  email: '1@users.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var userObj2 = {
-  email: '2@user.com',
+  email: '2@users.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var userObj3 = {
-  email: '3@user.com',
+  email: '3@users.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var userObj4 = {
-  email: '4@user.com',
+  email: '4@users.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 }
 
 var userObj5 = {
-  email: '5@user.com',
+  email: '5@users.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 }
@@ -80,7 +80,7 @@ before((done) => {
 
 // Clean up database
 after((done) => {
-  models.User.destroy({where: {email: {$like: '%@user.com'}}})
+  models.User.destroy({where: {email: {$like: '%@users.com'}}})
   .then(() => {
       done();
     });
@@ -97,7 +97,7 @@ describe('/api/users', () => {
         .send({email: userObj4.email, password: 'password'})
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body.email).to.eql('4@user.com');
+          expect(res.body.email).to.eql('4@users.com');
           expect(res.body.password).to.eql(null);
 
           models.User.find({where: {email: userObj4.email}})
@@ -145,7 +145,7 @@ describe('/api/users', () => {
       chai.request(address)
         .get('/users')
         .set('Authorization', 'Bearer ' + user1Token)
-        .query({email: {$like: '1@user.com'}})
+        .query({email: {$like: '1@users.com'}})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.length).to.eql(1);
@@ -251,7 +251,7 @@ describe('/api/users', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            models.User.find({where: {email: '3@user.com'}})
+            models.User.find({where: {email: '3@users.com'}})
               .then((user) => {
                 expect(user).to.not.be.ok;
                 done();

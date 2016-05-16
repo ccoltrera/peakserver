@@ -14,6 +14,7 @@ import app from '../server';
 import authTests from './auth-tests';
 import usersTests from './users-tests';
 import rangesTests from './ranges-tests';
+import rangePeaksTests from './range-peaks-tests';
 
 var server;
 

@@ -16,37 +16,37 @@ var user1, user2, user3, user1Token, user2Token, user3Token, range1, range3, ran
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
 var userObj1 = {
-  email: '1@range.com',
+  email: '1@ranges.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var userObj2 = {
-  email: '2@range.com',
+  email: '2@ranges.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var userObj3 = {
-  email: '3@range.com',
+  email: '3@ranges.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 var rangeObj1 = {
-  name: 'range.range1'
+  name: 'ranges.range1'
 };
 
 var rangeObj2 = {
-  name: 'range.range2'
+  name: 'ranges.range2'
 };
 
 var rangeObj3 = {
-  name: 'range.range3'
+  name: 'ranges.range3'
 };
 
 var rangeObj4 = {
-  name: 'range.range4'
+  name: 'ranges.range4'
 };
 
 // Create users with ranges needed for tests
@@ -109,14 +109,14 @@ before((done) => {
 
 // Clean up the database
 after((done) => {
-  models.User.destroy({where: {email: {$like: '%@range.com'}}})
+  models.User.destroy({where: {email: {$like: '%@ranges.com'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Range.destroy({where: {name: {$like: 'range.range%'}}})
+  models.Range.destroy({where: {name: {$like: 'ranges.range%'}}})
   .then(() => {
       done();
     });
@@ -241,17 +241,17 @@ describe('/api/users/:user/ranges', () => {
 
     describe('POST', () => {
 
-      it('should edit and return a range, if user matches JWT, and send updated range', (done) => {
+      it('should edit and return a range, if user matches JWT', (done) => {
         chai.request(address)
           .post('/users/' + (user3.id) + '/ranges/' + range3.id)
           .set('Authorization', 'Bearer ' + user3Token)
-          .send({name: 'range.range3.updated'})
+          .send({name: 'ranges.range3.updated'})
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body.name).to.eql('range.range3.updated');
+            expect(res.body.name).to.eql('ranges.range3.updated');
             models.Range.findById(range3.id)
               .then((range) => {
-                expect(range.name).to.eql('range.range3.updated');
+                expect(range.name).to.eql('ranges.range3.updated');
                 done();
               });
           });
@@ -262,7 +262,7 @@ describe('/api/users/:user/ranges', () => {
         chai.request(address)
           .post('/users/' + (user3.id) + '/ranges/' + (range3.id + 1000))
           .set('Authorization', 'Bearer ' + user3Token)
-          .send({name: 'range.range1000'})
+          .send({name: 'ranges.range1000'})
           .end((err, res) => {
             expect(res).to.have.status(404);
             done();
@@ -274,12 +274,12 @@ describe('/api/users/:user/ranges', () => {
         chai.request(address)
           .post('/users/' + (user1.id) + '/ranges/' + range1.id)
           .set('Authorization', 'Bearer ' + user3Token)
-          .send({name: 'range.range1.updated'})
+          .send({name: 'ranges.range1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(401);
             models.Range.findById(range1.id)
               .then((range) => {
-                expect(range.name).to.eql('range.range1');
+                expect(range.name).to.eql('ranges.range1');
                 done();
               });
           });
