@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 
 var models = require('../database/models');
 var jwtAuth = require('../auth/jwtAuth');
-var salt = process.env.SALT || '$2a$10$somethingheretobeasalt';
+var salt = process.env.USERSALT || '$2a$10$somethingheretobeasalt';
 
 module.exports = (app) => {
 

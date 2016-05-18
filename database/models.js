@@ -32,7 +32,9 @@ var Organization = connection.define('Organization', OrganizationMeta.attributes
 
 // define relationships between models
 Organization.belongsToMany(Team, {through: 'OrganizationTeam'});
+Team.belongsTo(Organization, {through: 'OrganizationTeam'});
 Organization.belongsToMany(User, {through: 'OrganizationUser'});
+// User.belongsTo(Organization, {through: 'OrganizationUser'});
 Organization.belongsTo(User, {as: 'Leader'});
 
 Team.belongsToMany(User, {through: 'TeamUser'});

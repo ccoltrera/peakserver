@@ -13,38 +13,46 @@ var address = 'http://localhost:3000/api';
 
 var user1, user2, user1Token, user2Token, org1, org2, org3;
 
-var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
+var salt = '$2a$10$somethingheretobeasalt';
+var hashedPassword = bcrypt.hashSync('password', salt);
 
 var userObj1 = {
   email: '1@orgs.com',
   password: hashedPassword,
-  salt: '$2a$10$somethingheretobeasalt'
+  salt: salt
 };
 
 var userObj2 = {
   email: '2@orgs.com',
   password: hashedPassword,
-  salt: '$2a$10$somethingheretobeasalt'
+  salt: salt
 };
 
 // Led by user1, for GET
 var orgObj1 = {
-  name: 'orgs.org1'
+  name: 'orgs.org1',
+  password: hashedPassword,
+  salt: salt
 };
 
 // Led by user1, for POST /orgs/:org
 var orgObj2 = {
-  name: 'orgs.org2'
+  name: 'orgs.org2',
+  password: hashedPassword,
+  salt: salt
 };
 
 // Led by user2, for DEL /orgs/:org
 var orgObj3 = {
-  name: 'orgs.org3'
+  name: 'orgs.org3',
+  password: hashedPassword,
+  salt: salt
 };
 
 // For POST /orgs, to be led by user2
 var orgObj4 = {
-  name: 'orgs.org4'
+  name: 'orgs.org4',
+  password: 'password'
 };
 
 // Create users and organizations needed for tests
@@ -120,18 +128,28 @@ describe('/api/orgs', () => {
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.name).to.eql(orgObj4.name);
+          expect(res.body.password).to.not.be.ok;
+          expect(res.body.salt).to.not.be.ok;
 
-          models.Organization.findOne({where: {name: orgObj4.name}})
-            .then((org) => {
-              expect(org).to.be.ok;
-              expect(org.dataValues.name).to.eql(orgObj4.name);
-
-              return org.getLeader();
-            })
-            .then((leader) => {
-              expect(leader.email).to.eql(user2.email);
-              done();
-            });
+          models.Organization.findOne({
+            where: {name: orgObj4.name},
+            include: [{
+              model: models.User,
+              as: 'Leader'
+            }]
+          })
+          .then((org) => {
+            expect(org).to.be.ok;
+            expect(org.dataValues.name).to.eql(orgObj4.name);
+            expect(org.dataValues.password).to.eql(hashedPassword);
+            expect(org.Leader.email).to.eql(user2.email);
+            return org.getUsers();
+          })
+          .then((users) => {
+            expect(users.length).to.eql(1);
+            expect(users[0].dataValues.id).to.eql(user2.id);
+            done();
+          })
         });
     });
 
@@ -157,6 +175,8 @@ describe('/api/orgs', () => {
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.length).to.eql(1);
+          expect(res.body[0].password).to.not.be.ok;
+          expect(res.body[0].salt).to.not.be.ok;
 
           done();
         });
@@ -175,6 +195,9 @@ describe('/api/orgs', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
             expect(res.body.name).to.eql(org1.name);
+            expect(res.body.password).to.not.be.ok;
+            expect(res.body.salt).to.not.be.ok;
+
             done();
           });
       });
@@ -200,6 +223,8 @@ describe('/api/orgs', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
             expect(res.body.name).to.eql('orgs.org2.updated');
+            expect(res.body.password).to.not.be.ok;
+            expect(res.body.salt).to.not.be.ok;
 
             models.Organization.findById(org2.id)
               .then((org) => {

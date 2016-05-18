@@ -21,7 +21,8 @@ var attributes = {
     allowNull: false
   },
   salt: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    allowNull: false
   },
   avatar: {
     type: Sequelize.JSON

@@ -11,7 +11,8 @@ var authAPI = require('./api/auth'),
   rangePeakAPI = require('./api/range-peaks'),
   rangePeakFBAPI = require('./api/range-peak-fb'),
   rangePeakSAAPI = require('./api/range-peak-sa'),
-  orgAPI = require('./api/orgs');
+  orgAPI = require('./api/orgs'),
+  teamAPI = require('./api/teams');
 
 
 app.use(bodyParser.json());
@@ -23,5 +24,6 @@ rangePeakAPI(app);
 rangePeakFBAPI(app);
 rangePeakSAAPI(app);
 orgAPI(app);
+teamAPI(app);
 
 module.exports = app;
