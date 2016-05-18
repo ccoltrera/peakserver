@@ -48,7 +48,6 @@ module.exports = (app) => {
   });
 
   app.get('/api/users/:user', jwtAuth, (req, res) => {
-    var userId = req.user.id;
     var searchId = req.params.user;
 
     models.User.findById(searchId)
@@ -88,6 +87,8 @@ module.exports = (app) => {
         user.salt = null;
 
         userInstance = user;
+
+        console.log(user.setMentor);
 
         if (mentor) {
           return user.setMentor(mentor);

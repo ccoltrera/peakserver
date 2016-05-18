@@ -4,7 +4,8 @@ var Sequelize = require('sequelize');
 var attributes = {
   name: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   }
 };
 

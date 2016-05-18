@@ -31,17 +31,17 @@ var Team = connection.define('Team', TeamMeta.attributes, TeamMeta.options);
 var Organization = connection.define('Organization', OrganizationMeta.attributes, OrganizationMeta.options);
 
 // define relationships between models
-Organization.hasMany(Team);
-Organization.hasMany(User);
-Organization.hasOne(User, {as: 'Leader'});
+Organization.belongsToMany(Team, {through: 'OrganizationTeam'});
+Organization.belongsToMany(User, {through: 'OrganizationUser'});
+Organization.belongsTo(User, {as: 'Leader'});
 
-Team.hasMany(User);
+Team.belongsToMany(User, {through: 'TeamUser'});
 // for admin purposes
-Team.hasOne(User, {as: 'Leader'});
-Team.hasMany(Endeavor);
+Team.belongsTo(User, {as: 'Leader'});
+Team.belongsToMany(Endeavor, {through: 'TeamEndeavor'});
 
 User.hasMany(Range);
-User.hasOne(User, {as: 'Mentor'});
+User.belongsTo(User, {as: 'Mentor'});
 
 Range.hasMany(RangePeak);
 
@@ -53,14 +53,14 @@ RangePeak.hasOne(RangePeakFB);
 
 Endeavor.hasMany(EndeavorPeak);
 
-EndeavorPeak.hasOne(User);
-EndeavorPeak.hasOne(User, {as: 'Creator'});
+EndeavorPeak.belongsTo(User);
+EndeavorPeak.belongsTo(User, {as: 'Creator'});
 EndeavorPeak.hasOne(RangePeakSA);
 EndeavorPeak.hasOne(RangePeakFB);
 
 // EndeavorPeakFB.hasOne(User, {as: 'Giver'}); //
 
-connection.sync();
+// connection.sync({force: true});
 
 // export all models
 module.exports = {

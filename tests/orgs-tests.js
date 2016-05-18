@@ -88,13 +88,20 @@ before((done) => {
 // Generate tokens for tests
 before((done) => {
   user1Token = jwt.sign({id: user1.id}, 'server secret', {expiresIn: '120m'});
-  user2Token = jwt.sign({id: user1.id}, 'server secret', {expiresIn: '120m'});
+  user2Token = jwt.sign({id: user2.id}, 'server secret', {expiresIn: '120m'});
   done();
 });
 
 // Clean up database
 after((done) => {
   models.User.destroy({where: {email: {$like: '%@orgs.com'}}})
+  .then(() => {
+      done();
+    });
+});
+
+after((done) => {
+  models.Organization.destroy({where: {name: {$like: 'orgs.org%'}}})
   .then(() => {
       done();
     });
@@ -200,7 +207,7 @@ describe('/api/orgs', () => {
                 return org.getLeader();
               })
               .then((leader) => {
-                expect(leader.dataValues.email).to.eql(org2.email);
+                expect(leader.dataValues.email).to.eql(user2.email);
                 done();
               });
           });
@@ -213,6 +220,17 @@ describe('/api/orgs', () => {
           .send({name: 'orgs.org2.updated'})
           .end((err, res) => {
             expect(res).to.have.status(401);
+            done();
+          });
+      });
+
+      it('should send 404, if org does not exist', (done) => {
+        chai.request(address)
+          .post('/orgs/' + (org1.id + 1000))
+          .set('Authorization', 'Bearer ' + user2Token)
+          .send({name: 'orgs.org2.updated'})
+          .end((err, res) => {
+            expect(res).to.have.status(404);
             done();
           });
       });
@@ -236,6 +254,16 @@ describe('/api/orgs', () => {
       });
 
       it('should send 401 if attempt is made to delete org where JWT does not match leader', (done) => {
+        chai.request(address)
+          .del('/orgs/' + org1.id)
+          .set('Authorization', 'Bearer ' + user2Token)
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+          });
+      });
+
+      it('should send 404 if org does not exist', (done) => {
         chai.request(address)
           .del('/orgs/' + org1.id)
           .set('Authorization', 'Bearer ' + user2Token)

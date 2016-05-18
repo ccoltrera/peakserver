@@ -160,7 +160,7 @@ describe('/api/users', () => {
 
     // /users/:user GET
     describe('GET', () => {
-      it('should get a user\'s own info with proper JWT', (done) => {
+      it('should get a user with proper JWT', (done) => {
         chai.request(address)
           .get('/users/' + user1.id)
           .set('Authorization', 'Bearer ' + user1Token)
@@ -233,9 +233,12 @@ describe('/api/users', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            user1.getMentor()
-              .then((mentor) => {
-                expect(mentor.dataValues.email).to.eql(user2.email);
+            models.User.findOne({
+              where: user1.id,
+              include: [{model: models.User, as: 'Mentor'}]
+            })
+              .then((user) => {
+                expect(user.Mentor.dataValues.email).to.eql(user2.email);
                 done();
               });
           });
