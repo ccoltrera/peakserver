@@ -12,7 +12,7 @@ import models from '../database/models';
 
 var address = 'http://localhost:3000/api';
 
-var user1, user2, user1Token, user2Token, range1, peak1, peak2, peak3, peak4, sa1, sa3, sa4;
+var user1, user2, user1Token, user2Token, range1, peak1, peak2, peak3, peak4, peak5, sa1, sa3, sa4;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -54,19 +54,23 @@ var peakObj4 = {
   name: 'range-peak-sa.peak4'
 };
 
-var peakFBObj1 = {
+var peakObj5 = {
+  name: 'range-peak-sa.peak5'
+};
+
+var peakSAObj1 = {
   body: 'range-peak-sa.sa1'
 };
 
-var peakFBObj2 = {
+var peakSAObj2 = {
   body: 'range-peak-sa.sa2'
 };
 
-var peakFBObj3 = {
+var peakSAObj3 = {
   body: 'range-peak-sa.sa3'
 };
 
-var peakFBObj4 = {
+var peakSAObj4 = {
   body: 'range-peak-sa.sa4'
 };
 
@@ -99,12 +103,12 @@ before((done) => {
       return range1.addRangePeak(id);
     })
     .then(() => {
-      return models.RangePeakFB.create(peakFBObj1);
+      return models.RangePeakSA.create(peakSAObj1);
     })
     .then((sa) => {
       sa1 = sa;
       var id = sa1.id;
-      return peak1.setRangePeakFB(id);
+      return peak1.setRangePeakSA(id);
     })
     .then(() => {
       return models.RangePeak.create(peakObj3);
@@ -115,12 +119,12 @@ before((done) => {
       return range1.addRangePeak(id);
     })
     .then(() => {
-      return models.RangePeakFB.create(peakFBObj3);
+      return models.RangePeakSA.create(peakSAObj3);
     })
     .then((sa) => {
       sa3 = sa;
       var id = sa3.id;
-      return peak3.setRangePeakFB(id);
+      return peak3.setRangePeakSA(id);
     })
     .then(() => {
       return models.RangePeak.create(peakObj4);
@@ -131,12 +135,20 @@ before((done) => {
       return range1.addRangePeak(id);
     })
     .then(() => {
-      return models.RangePeakFB.create(peakFBObj4);
+      return models.RangePeakSA.create(peakSAObj4);
     })
     .then((sa) => {
       sa4 = sa;
       var id = sa4.id;
-      return peak4.setRangePeakFB(id);
+      return peak4.setRangePeakSA(id);
+    })
+    .then(() => {
+      return models.RangePeak.create(peakObj5);
+    })
+    .then((peak) => {
+      peak5 = peak;
+      var id = peak5.id;
+      return range1.addRangePeak(id);
     })
     .then(() => {
       done();
@@ -184,7 +196,7 @@ after((done) => {
 });
 
 after((done) => {
-  models.RangePeakFB.destroy({where: {body: {$like: 'range-peak-sa.sa%'}}})
+  models.RangePeakSA.destroy({where: {body: {$like: 'range-peak-sa.sa%'}}})
   .then(() => {
       done();
     });
@@ -230,7 +242,7 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/sa', () => {
           expect(res).to.have.status(200);
           expect(res.body.body).to.eql('range-peak-sa.sa4.updated');
 
-          models.RangePeakFB.findById(sa4.id)
+          models.RangePeakSA.findById(sa4.id)
             .then((sa) => {
               expect(sa.body).to.eql('range-peak-sa.sa4.updated');
               done();
@@ -242,14 +254,14 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/sa', () => {
       chai.request(address)
         .post('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak2.id + '/sa')
         .set('Authorization', 'Bearer ' + user1Token)
-        .send(peakFBObj2)
+        .send(peakSAObj2)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body.body).to.eql(peakFBObj2.body);
+          expect(res.body.body).to.eql(peakSAObj2.body);
 
-          models.RangePeakFB.findById(res.body.id)
+          models.RangePeakSA.findById(res.body.id)
             .then((sa) => {
-              expect(sa.body).to.eql(peakFBObj2.body);
+              expect(sa.body).to.eql(peakSAObj2.body);
               done();
             });
         });
@@ -267,7 +279,7 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/sa', () => {
 
     });
 
-    it('should return 401 if JWT does not match range / peak owning user', (done) => {
+    it('should return 401 if JWT does not match range / peak owning user\'s mentor', (done) => {
       chai.request(address)
         .post('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak1.id + '/sa')
         .set('Authorization', 'Bearer ' + user2Token)
@@ -291,7 +303,7 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/sa', () => {
         .end((err, res) => {
           expect(res).to.have.status(200);
 
-          models.RangePeakFB.findById(sa3.id)
+          models.RangePeakSA.findById(sa3.id)
             .then((sa) => {
               expect(sa).to.not.be.ok;
               done();
@@ -302,6 +314,17 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/sa', () => {
     it('should return a 404 if the peak does not exist', (done) => {
       chai.request(address)
         .del('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + (peak1.id + 1000) + '/sa')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .end((err, res) => {
+          expect(res).to.have.status(404);
+          done();
+        });
+
+    });
+
+    it('should return a 404 if there is no feedback', (done) => {
+      chai.request(address)
+        .del('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak5.id + '/sa')
         .set('Authorization', 'Bearer ' + user1Token)
         .end((err, res) => {
           expect(res).to.have.status(404);

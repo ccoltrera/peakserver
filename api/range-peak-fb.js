@@ -88,8 +88,6 @@ module.exports = (app) => {
         }
       });
 
-
-
   });
 
   app.delete('/api/users/:user/ranges/:range/peaks/:peak/fb', jwtAuth, (req, res) => {
