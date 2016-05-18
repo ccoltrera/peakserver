@@ -6,27 +6,31 @@ var jwtAuth = require('../auth/jwtAuth');
 module.exports = (app) => {
 
   app.get('/api/users/:user/ranges/:range/peaks/:peak/sa', jwtAuth, (req, res) => {
-    // models.User
-    //   .findOne({
-    //     where: { id: req.params.user },
-    //     include: [{
-    //       model: models.Range,
-    //       where: { id: req.params.range },
-    //       include: [{
-    //         model: models.RangePeak,
-    //         where: { id: req.params.peak }
-    //       }]
-    //     }]
-    //   })
-    //   .then((user) => {
-    //     if (user) {
-    //       let range = user['dataValues']['Ranges'][0];
-    //       let peak = range['RangePeaks'][0];
-    //       res.status(200).json(peak);
-    //     } else {
-    //       res.sendStatus(404);
-    //     }
-    //   });
+    models.User
+      .findOne({
+        where: { id: req.params.user },
+        include: [{
+          model: models.Range,
+          where: { id: req.params.range },
+          include: [{
+            model: models.RangePeak,
+            where: { id: req.params.peak },
+            include: [{
+              model: models.RangePeakSA
+            }]
+          }]
+        }]
+      })
+      .then((user) => {
+        if (user) {
+          let range = user['dataValues']['Ranges'][0];
+          let peak = range['RangePeaks'][0];
+          let sa = peak['RangePeakSA'];
+          res.status(200).json(sa);
+        } else {
+          res.sendStatus(404);
+        }
+      });
 
   });
 

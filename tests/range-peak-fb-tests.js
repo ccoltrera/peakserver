@@ -5,13 +5,14 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 chai.use(chaiHttp);
+chai.use(require('chai-datetime'));
 var expect = chai.expect;
 
 import models from '../database/models';
 
 var address = 'http://localhost:3000/api';
 
-var user1, user2, user3, user1Token, user2Token, user3Token, range1, peak1, peak2, peak3, fb1, fb3;
+var user1, user2, user3, user1Token, user2Token, user3Token, range1, peak1, peak2, peak3, peak4, peak5, fb1, fb3, fb4;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -49,6 +50,14 @@ var peakObj3 = {
   name: 'range-peak-fb.peak3'
 };
 
+var peakObj4 = {
+  name: 'range-peak-fb.peak4'
+};
+
+var peakObj5 = {
+  name: 'range-peak-fb.peak5'
+};
+
 var peakFBObj1 = {
   body: 'range-peak-fb.fb1'
 };
@@ -59,6 +68,10 @@ var peakFBObj2 = {
 
 var peakFBObj3 = {
   body: 'range-peak-fb.fb3'
+};
+
+var peakFBObj4 = {
+  body: 'range-peak-fb.fb4'
 };
 
 // Create users with ranges and peaks needed for tests
@@ -112,6 +125,30 @@ before((done) => {
       fb3 = fb;
       var id = fb3.id;
       return peak3.setRangePeakFB(id);
+    })
+    .then(() => {
+      return models.RangePeak.create(peakObj4);
+    })
+    .then((peak) => {
+      peak4 = peak;
+      var id = peak4.id;
+      return range1.addRangePeak(id);
+    })
+    .then(() => {
+      return models.RangePeakFB.create(peakFBObj4);
+    })
+    .then((fb) => {
+      fb4 = fb;
+      var id = fb4.id;
+      return peak4.setRangePeakFB(id);
+    })
+    .then(() => {
+      return models.RangePeak.create(peakObj5);
+    })
+    .then((peak) => {
+      peak5 = peak;
+      var id = peak5.id;
+      return range1.addRangePeak(id);
     })
     .then(() => {
       done();
@@ -186,7 +223,7 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/fb', () => {
           .set('Authorization', 'Bearer ' + user1Token)
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body.date).to.eql(fb1.date);
+            expect(res.body.body).to.eql(fb1.body);
             done();
           });
       });
@@ -207,17 +244,16 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/fb', () => {
   describe('POST', () => {
     it('should edit and return fb, if range owning user\'s mentor matches JWT', (done) => {
       chai.request(address)
-        .post('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak1.id + '/fb')
+        .post('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak4.id + '/fb')
         .set('Authorization', 'Bearer ' + user2Token)
-        .send({body: 'range-peak-fb.fb1.updated'})
+        .send({body: 'range-peak-fb.fb4.updated'})
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body.date).to.eql(peak3.date);
-          expect(res.body.body).to.eql('range-peak-fb.fb1.updated');
+          expect(res.body.body).to.eql('range-peak-fb.fb4.updated');
 
-          models.RangePeakFB.findById(fb1.id)
+          models.RangePeakFB.findById(fb4.id)
             .then((fb) => {
-              expect(fb.body).to.eql('range-peak-fb.fb1.updated');
+              expect(fb.body).to.eql('range-peak-fb.fb4.updated');
               done();
             });
         });
@@ -259,7 +295,7 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/fb', () => {
         .send({body: 'range-peak-fb.fb1.updated'})
         .end((err, res) => {
           expect(res).to.have.status(401);
-
+          done();
         });
     });
 
@@ -295,13 +331,24 @@ describe('/api/users/:user/ranges/:range/peaks/:peak/fb', () => {
 
     });
 
+    it('should return a 404 if there is no feedback', (done) => {
+      chai.request(address)
+        .del('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak5.id + '/fb')
+        .set('Authorization', 'Bearer ' + user2Token)
+        .end((err, res) => {
+          expect(res).to.have.status(404);
+          done();
+        });
+
+    });
+
     it('should return 401 if JWT does not match range / peak owning user\'s mentor', (done) => {
       chai.request(address)
         .del('/users/' + user1.id + '/ranges/' + range1.id + '/peaks/' + peak1.id + '/fb')
         .set('Authorization', 'Bearer ' + user3Token)
         .end((err, res) => {
           expect(res).to.have.status(401);
-
+          done();
         });
     });
 
