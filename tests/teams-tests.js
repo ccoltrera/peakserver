@@ -11,7 +11,10 @@ import models from '../database/models';
 
 var address = 'http://localhost:3000/api';
 
-var user1, user2, user3, user1Token, user2Token, user3Token, org1, org2, org3;
+var user1, user2, user3,
+    user1Token, user2Token, user3Token,
+    org1,
+    team1, team2, team3;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -22,13 +25,14 @@ var userObj1 = {
   salt: '$2a$10$somethingheretobeasalt'
 };
 
-// leader of team1, team2, team3
+// member of org1, leader of team1, team2, team3
 var userObj2 = {
   email: '2@teams.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
+// not member of org 1
 var userObj3 = {
   email: '3@teams.com',
   password: hashedPassword,
@@ -42,17 +46,17 @@ var orgObj1 = {
   salt: '$2a$10$somethingheretobeasalt'
 };
 
-// used for GET
+// led by user1, used for GET
 var teamObj1 = {
   name: 'teams.team1'
 };
 
-// used for /teams/:team POST
+// led by user1, used for /teams/:team POST
 var teamObj2 = {
   name: 'teams.team2'
 };
 
-// used for /teams/:team DEL
+// led by user1, used for /teams/:team DEL
 var teamObj3 = {
   name: 'teams.team3'
 };
@@ -62,26 +66,61 @@ var teamObj4 = {
   name: 'teams.team4'
 };
 
-// Create users and organizations needed for tests
+// Create users, organizations, and teams needed for tests
 before((done) => {
+  // create user1
   models.User.create(userObj1)
+    // create org1
     .then((user) => {
       user1 = user;
       return models.Organization.create(orgObj1);
     })
+    // set user 1 as org 1 leader
     .then((org) => {
       org1 = org;
       return org1.setLeader(user1);
     })
-    .then(() => {
-      done();
-    });
-});
-
-before((done) => {
-  models.User.create(userObj2)
+    // add user1 to org1
+    .then((org) => {
+      return org1.addUser(user1);
+    })
+    // create user2
+    .then((org) => {
+      return models.User.create(userObj2)
+    })
+    // add user2 to org1
     .then((user) => {
       user2 = user;
+      return org1.addUser(user2);
+    })
+    // create team1
+    .then((org) => {
+      return models.Team.create(teamObj1)
+    })
+    // set user1 as leader of team1
+    .then((team) => {
+      team1 = team;
+      return team1.setLeader(user1);
+    })
+    // create team2
+    .then((team) => {
+      return models.Team.create(teamObj2)
+    })
+    // set user1 as leader of team1
+    .then((team) => {
+      team2 = team;
+      return team2.setLeader(user1);
+    })
+    // create team3
+    .then((team) => {
+      return models.Team.create(teamObj3)
+    })
+    // set user1 as leader of team3
+    .then((team) => {
+      team3 = team;
+      return team.setLeader(user1);
+    })
+    .then((team) => {
       done();
     });
 });
@@ -129,7 +168,7 @@ describe('/api/orgs/:org/teams', () => {
 
   // /orgs/:org/teams POST
   describe('POST', () => {
-    it('should create a new team belonging to org, if user a member, with user as leader', (done) => {
+    it('should create a new team belonging to org, if user a member, with user as leader and member', (done) => {
       // chai.request(address)
       //   .post('/orgs/:org/teams')
       //   .set('Authorization', 'Bearer ' + user2Token)
@@ -220,7 +259,7 @@ describe('/api/orgs/:org/teams', () => {
 
     // /orgs/:org/teams/:team GET
     describe('GET', () => {
-      it('should get specific org info with JWT that matches org member', (done) => {
+      it('should get specific team info with JWT that matches org member', (done) => {
         // chai.request(address)
         //   .get('/orgs/:org/teams/' + org1.id)
         //   .set('Authorization', 'Bearer ' + user1Token)
@@ -231,7 +270,7 @@ describe('/api/orgs/:org/teams', () => {
         //   });
       });
 
-      it('should return 404 status if no matching org', (done) => {
+      it('should return 404 status if no matching team', (done) => {
         // chai.request(address)
         //   .get('/orgs/:org/teams/' + (org1.id + 1000) )
         //   .set('Authorization', 'Bearer ' + user1Token)
