@@ -15,6 +15,8 @@ import authTests from './auth-tests';
 import usersTests from './users-tests';
 import rangesTests from './ranges-tests';
 import rangePeaksTests from './range-peaks-tests';
+import rangePeakFBTests from './range-peak-fb-tests';
+import rangePeakSATests from './range-peak-sa-tests';
 
 var server;
 
