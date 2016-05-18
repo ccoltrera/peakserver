@@ -8,7 +8,7 @@ module.exports = (app) => {
   app.post('/api/users/:user/ranges', jwtAuth, (req, res) => {
     // See if user's JWT matches what they are trying to edit
     if (req.params.user == req.user.id) {
-      var userInstance, newRangeInstance;
+      var newRangeInstance;
 
       models.User
         .findOne({
@@ -40,7 +40,7 @@ module.exports = (app) => {
         });
 
     } else {
-      // If not, 409 status
+      // If not, 401 status
       res.sendStatus(401);
     }
   });

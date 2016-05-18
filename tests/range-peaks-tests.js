@@ -154,7 +154,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
 
           range2.getRangePeaks()
             .then((peaks) => {
-              expect(peaks.length).to.eql(1);
+              expect(peaks.length).to.eql(2);
               done();
             });
         });
@@ -167,12 +167,20 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
         .send(peakObj2)
         .end((err, res) => {
           expect(res).to.have.status(401);
+          done();
 
-          range1.getRangePeaks()
-            .then((peaks) => {
-              expect(peaks.length).to.eql(1);
-              done();
-            });
+        });
+
+    });
+
+    it('should send a 409 status if the peak name same as existing peak on range', (done) => {
+      chai.request(address)
+        .post('/users/' + user1.id + '/ranges/' + range1.id + '/peaks')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .send(peakObj1)
+        .end((err, res) => {
+          expect(res).to.have.status(409);
+          done();
         });
 
     });
@@ -189,6 +197,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.length).to.eql(2);
+          done();
         });
     });
 
@@ -198,6 +207,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
         .set('Authorization', 'Bearer ' + user1Token)
         .end((err, res) => {
           expect(res).to.have.status(404);
+          done();
         });
     });
 
@@ -215,6 +225,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
             expect(res.body.name).to.eql(peak1.name);
+            done();
           });
       });
 
@@ -224,6 +235,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
           .set('Authorization', 'Bearer ' + user1Token)
           .end((err, res) => {
             expect(res).to.have.status(404);
+            done();
           });
       });
 
@@ -259,7 +271,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
 
             models.RangePeak.findById(peak1.id)
               .then((peak) => {
-                expect(peak.name).to.eql(peakObj2.name);
+                expect(peak.name).to.eql(peakObj1.name);
                 done();
               });
           });
@@ -289,7 +301,7 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
       it('should delete a peak, if range owning user matches JWT', (done) => {
         chai.request(address)
           .del('/users/' + user2.id + '/ranges/' + range2.id + '/peaks/' + peak4.id)
-          .set('Authorization', 'Bearer ' + user1Token)
+          .set('Authorization', 'Bearer ' + user2Token)
           .end((err, res) => {
             expect(res).to.have.status(200);
 
