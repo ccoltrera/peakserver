@@ -11,7 +11,7 @@ import models from '../database/models';
 
 var address = 'http://localhost:3000/api';
 
-var user1, user2, user1Token, user2Token;
+var user1, user2, user1Token, user2Token, org1, org2, org3;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -27,11 +27,45 @@ var userObj2 = {
   salt: '$2a$10$somethingheretobeasalt'
 };
 
-// Create users needed for tests
+// Led by user1, for GET
+var orgObj1 = {
+  name: 'orgs.org1'
+};
+
+// Led by user1, for POST /orgs/:org
+var orgObj2 = {
+  name: 'orgs.org2'
+};
+
+// Led by user2, for DEL /orgs/:org
+var orgObj3 = {
+  name: 'orgs.org3'
+};
+
+// For POST /orgs, to be led by user2
+var orgObj4 = {
+  name: 'orgs.org4'
+};
+
+// Create users and organizations needed for tests
 before((done) => {
   models.User.create(userObj1)
     .then((user) => {
       user1 = user;
+      return models.Organization.create(orgObj1);
+    })
+    .then((org) => {
+      org1 = org;
+      return org1.setLeader(user1);
+    })
+    .then(() => {
+      return models.Organization.create(orgObj2);
+    })
+    .then((org) => {
+      org2 = org;
+      return org2.setLeader(user1);
+    })
+    .then(() => {
       done();
     });
 });
@@ -40,10 +74,16 @@ before((done) => {
   models.User.create(userObj2)
     .then((user) => {
       user2 = user;
+      return models.Organization.create(orgObj3);
+    })
+    .then((org) => {
+      org3 = org;
+      return org3.setLeader(user2);
+    })
+    .then(() => {
       done();
     });
 });
-
 
 // Generate tokens for tests
 before((done) => {
@@ -66,48 +106,53 @@ describe('/api/orgs', () => {
   // /orgs POST
   describe('POST', () => {
     it('should create a new org in the db if no matching org exists, with creating user as leader — and return the org', (done) => {
-    //   chai.request(address)
-    //     .post('/orgs')
-    //     .send({email: userObj4.email, password: 'password'})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(200);
-    //       expect(res.body.email).to.eql('4@orgs.com');
-    //       expect(res.body.password).to.eql(null);
+      chai.request(address)
+        .post('/orgs')
+        .set('Authorization', 'Bearer ' + user2Token)
+        .send(orgObj4)
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.name).to.eql(orgObj4.name);
 
-    //       models.User.find({where: {email: userObj4.email}})
-    //         .then((user) => {
-    //           expect(user.dataValues).to.be.ok;
-    //           expect(user.dataValues.email).to.eql(userObj4.email);
-    //           expect(user.dataValues.salt).to.eql('$2a$10$somethingheretobeasalt');
-    //           done();
-    //         });
-    //     });
+          models.Organization.findOne({where: {name: orgObj4.name}})
+            .then((org) => {
+              expect(org).to.be.ok;
+              expect(org.dataValues.name).to.eql(orgObj4.name);
+
+              return org.getLeader();
+            })
+            .then((leader) => {
+              expect(leader.email).to.eql(user2.email);
+              done();
+            });
+        });
     });
 
     it('send a 409 error if an org with that name already exists', (done) => {
-    //   chai.request(address)
-    //     .post('/orgs')
-    //     .send({email: userObj1.email, password: 'password'})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(409);
-    //       done();
-    //     });
+      chai.request(address)
+        .post('/orgs')
+        .set('Authorization', 'Bearer ' + user2Token)
+        .send(orgObj1)
+        .end((err, res) => {
+          expect(res).to.have.status(409);
+          done();
+        });
     });
 
   });
 
   describe('GET', () => {
     it('should return orgs that match the query string, with proper JWT', (done) => {
-    //   chai.request(address)
-    //     .get('/orgs')
-    //     .set('Authorization', 'Bearer ' + user1Token)
-    //     .query({email: {$like: '1@orgs.com'}})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(200);
-    //       expect(res.body.length).to.eql(1);
+      chai.request(address)
+        .get('/orgs')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .query({name: {$like: orgObj1.name}})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.length).to.eql(1);
 
-    //       done();
-    //     });
+          done();
+        });
     });
   });
 
@@ -117,106 +162,87 @@ describe('/api/orgs', () => {
     // /orgs/:org GET
     describe('GET', () => {
       it('should get specific org info with proper JWT', (done) => {
-      //   chai.request(address)
-      //     .get('/orgs/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
-      //       expect(res.body.email).to.eql(user1.email);
-      //       done();
-      //     });
+        chai.request(address)
+          .get('/orgs/' + org1.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body.name).to.eql(org1.name);
+            done();
+          });
       });
 
       it('should return 404 status if no matching org', (done) => {
-      //   chai.request(address)
-      //     .get('/orgs/' + (user1.id + 1000) )
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(404);
-      //       done();
-      //     });
+        chai.request(address)
+          .get('/orgs/' + (org1.id + 1000) )
+          .set('Authorization', 'Bearer ' + user1Token)
+          .end((err, res) => {
+            expect(res).to.have.status(404);
+            done();
+          });
       });
     });
 
     // /orgs/:org POST
     describe('POST', () => {
       it('should change org info based on JSON, with JWT matching leader, send updated org', (done) => {
-      //   chai.request(address)
-      //     .post('/orgs/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .send({firstName: 'C', lastName: 'Colt'})
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
-      //       expect(res.body.firstName).to.eql('C');
-      //       expect(res.body.password).to.eql(null);
+        chai.request(address)
+          .post('/orgs/' + org2.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .send({name: 'orgs.org2.updated', leader: user2.id})
+          .end((err, res) => {
+            expect(res).to.have.status(200);
+            expect(res.body.name).to.eql('orgs.org2.updated');
 
-      //       models.User.find({where: {email: userObj1.email}})
-      //         .then((user) => {
-      //           expect(user.dataValues.firstName).to.eql('C');
-      //           expect(user.dataValues.lastName).to.eql('Colt');
-      //           done();
-      //         });
-      //     });
-      });
-
-      it('should associate a new user as leader when included in JSON, with JWT matching old leader', (done) => {
-      //   chai.request(address)
-      //     .post('/orgs/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .send({mentor: user2.id})
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
-
-      //       user1.getMentor()
-      //         .then((mentor) => {
-      //           expect(mentor.dataValues.email).to.eql(user2.email);
-      //           done();
-      //         });
-      //     });
+            models.Organization.findById(org2.id)
+              .then((org) => {
+                expect(org.dataValues.name).to.eql('orgs.org2.updated');
+                return org.getLeader();
+              })
+              .then((leader) => {
+                expect(leader.dataValues.email).to.eql(org2.email);
+                done();
+              });
+          });
       });
 
       it('should send 401, when JWT does not match leader', (done) => {
-      //   chai.request(address)
-      //     .post('/orgs/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .send({mentor: user2.id})
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
-
-      //       user1.getMentor()
-      //         .then((mentor) => {
-      //           expect(mentor.dataValues.email).to.eql(user2.email);
-      //           done();
-      //         });
-      //     });
+        chai.request(address)
+          .post('/orgs/' + org1.id)
+          .set('Authorization', 'Bearer ' + user2Token)
+          .send({name: 'orgs.org2.updated'})
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+          });
       });
     });
 
     // /orgs/:org DEL
     describe('DELETE', () => {
       it('should delete an org in the db, with JWT matching leader', (done) => {
-    //     chai.request(address)
-    //       .del('/orgs/' + user3.id)
-    //       .set('Authorization', 'Bearer ' + user3Token)
-    //       .end((err, res) => {
-    //         expect(res).to.have.status(200);
+        chai.request(address)
+          .del('/orgs/' + org3.id)
+          .set('Authorization', 'Bearer ' + user2Token)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
 
-    //         models.User.find({where: {email: '3@orgs.com'}})
-    //           .then((user) => {
-    //             expect(user).to.not.be.ok;
-    //             done();
-    //           });
-    //       });
+            models.Organization.findOne({where: {name: 'orgs.org3'}})
+              .then((org) => {
+                expect(org).to.not.be.ok;
+                done();
+              });
+          });
       });
 
       it('should send 401 if attempt is made to delete org where JWT does not match leader', (done) => {
-    //     chai.request(address)
-    //       .del('/orgs/' + user2.id)
-    //       .set('Authorization', 'Bearer ' + user1Token)
-    //       .end((err, res) => {
-    //         expect(res).to.have.status(401);
-    //         done();
-    //       });
+        chai.request(address)
+          .del('/orgs/' + org1.id)
+          .set('Authorization', 'Bearer ' + user2Token)
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+          });
       });
     });
   });
