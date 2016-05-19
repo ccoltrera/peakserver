@@ -201,92 +201,117 @@ after((done) => {
 describe('/api/orgs/:org/teams/:team/users', () => {
 
   describe('GET', () => {
-    // it('should return users in org that match the query string, with JWT that matches org member', (done) => {
-    //   chai.request(address)
-    //     .get('/orgs/' + org1.id + '/users')
-    //     .set('Authorization', 'Bearer ' + user1Token)
-    //     .query({email: {$like: userObj2.email}})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(200);
-    //       expect(res.body.length).to.eql(1);
-    //       expect(res.body[0].email).to.eql(userObj2.email);
+    it('should return users in team that match the query string, with JWT that matches org member', (done) => {
+      chai.request(address)
+        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .query({email: {$like: userObj2.email}})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.length).to.eql(1);
+          expect(res.body[0].email).to.eql(userObj2.email);
 
-    //       done();
-    //     });
-    // });
+          done();
+        });
+    });
 
-    // it('should return 401, without JWT that matches org member', (done) => {
-    //   chai.request(address)
-    //     .get('/orgs/' + org1.id + '/users')
-    //     .set('Authorization', 'Bearer ' + user6Token)
-    //     .query({email: {$like: userObj1.email}})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(401);
+    it('should return 401, without JWT that matches org member', (done) => {
+      chai.request(address)
+        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user7Token)
+        .query({email: {$like: userObj1.email}})
+        .end((err, res) => {
+          expect(res).to.have.status(401);
 
-    //       done();
-    //     });
-    // });
+          done();
+        });
+    });
 
-    // it('should return 404, if org not found', (done) => {
-    //   chai.request(address)
-    //     .get('/orgs/' + (org1.id + 1000) + '/users')
-    //     .set('Authorization', 'Bearer ' + user1Token)
-    //     .query({email: {$like: userObj2.email}})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(404);
+    it('should return 404, if org not found', (done) => {
+      chai.request(address)
+        .get('/orgs/' + (org1.id + 1000) + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .query({email: {$like: userObj2.email}})
+        .end((err, res) => {
+          expect(res).to.have.status(404);
 
-    //       done();
-    //     });
-    // });
+          done();
+        });
+    });
+
+    it('should return 404, if team not found', (done) => {
+      chai.request(address)
+        .get('/orgs/' + org1.id + '/teams/' + (team1.id + 1000) + '/users')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .query({email: {$like: userObj2.email}})
+        .end((err, res) => {
+          expect(res).to.have.status(404);
+
+          done();
+        });
+    });
   });
 
   // /orgs/:org/teams/:team/users POST
   describe('POST', () => {
-    // it('should add user to org, with org password', (done) => {
-    //   chai.request(address)
-    //     .post('/orgs/' + org1.id + '/users')
-    //     .set('Authorization', 'Bearer ' + user5Token)
-    //     .send({password: 'password'})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(200);
-    //       expect(res.body.name).to.eql(orgObj1.name);
+    it('should add user to team, if JWT matches user', (done) => {
+      chai.request(address)
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user5Token)
+        .send({id: user5.id})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.name).to.eql(teamObj1.name);
 
-    //       models.Organization.findOne({
-    //         where: {id: org1.id},
-    //         include: [{
-    //           model: models.User,
-    //           where: {id: user5.id}
-    //         }]
-    //       })
-    //       .then((org) => {
-    //         expect(org).to.be.ok;
-    //         expect(org.Users[0].email).to.eql(userObj5.email);
-    //         done();
-    //       });
-    //     });
-    // });
+          models.Team.findOne({
+            where: {id: team1.id},
+            include: [{
+              model: models.User,
+              where: {id: user5.id}
+            }]
+          })
+          .then((team) => {
+            expect(team).to.be.ok;
+            expect(team.Users[0].email).to.eql(userObj5.email);
+            done();
+          });
+        });
+    });
 
-    // it('send a 409 error if user already member of org', (done) => {
-    //   chai.request(address)
-    //     .post('/orgs/' + org1.id + '/users')
-    //     .set('Authorization', 'Bearer ' + user2Token)
-    //     .send({password: 'password'})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(409);
-    //       done();
-    //     });
-    // });
+    it('should add user to team, if JWT matches team leader', (done) => {
+      chai.request(address)
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user1Token)
+        .send({id: user6.id})
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.name).to.eql(teamObj1.name);
 
-    // it('send a 401 error if password does not match that of org', (done) => {
-    //   chai.request(address)
-    //     .post('/orgs/' + org1.id + '/users')
-    //     .set('Authorization', 'Bearer ' + user6Token)
-    //     .send({password: 'notPassword'})
-    //     .end((err, res) => {
-    //       expect(res).to.have.status(401);
-    //       done();
-    //     });
-    // });
+          models.Team.findOne({
+            where: {id: team1.id},
+            include: [{
+              model: models.User,
+              where: {id: user6.id}
+            }]
+          })
+          .then((team) => {
+            expect(team).to.be.ok;
+            expect(team.Users[0].email).to.eql(userObj6.email);
+            done();
+          });
+        });
+    });
+
+    it('send a 401 error if JWT does not match user or team leader', (done) => {
+      chai.request(address)
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/users')
+        .set('Authorization', 'Bearer ' + user2Token)
+        .send({id: user7.id})
+        .end((err, res) => {
+          expect(res).to.have.status(401);
+          done();
+        });
+    });
 
   });
 
@@ -295,67 +320,77 @@ describe('/api/orgs/:org/teams/:team/users', () => {
 
     // /orgs/:org/teams/:team/users/:user DEL
     describe('DELETE', () => {
-      // it('should remove a member of the org, with JWT matching self', (done) => {
-      //   chai.request(address)
-      //     .del('/orgs/' + org1.id + '/users/' + user3.id)
-      //     .set('Authorization', 'Bearer ' + user3Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
+      it('should remove a member of team, with JWT matching user', (done) => {
+        chai.request(address)
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/users/' + user3.id)
+          .set('Authorization', 'Bearer ' + user3Token)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
 
-      //       models.Organization.findOne({
-      //         where: {id: org1.id},
-      //         include: [{
-      //           model: models.User,
-      //           where: {id: user3.id}
-      //         }]
-      //       })
-      //       .then((org) => {
-      //         expect(org).to.not.be.ok;
-      //         done();
-      //       });
-      //     });
-      // });
+            models.Team.findOne({
+              where: {id: team1.id},
+              include: [{
+                model: models.User,
+                where: {id: user3.id}
+              }]
+            })
+            .then((team) => {
+              expect(team).to.not.be.ok;
+              done();
+            });
+          });
+      });
 
-      // it('should remove a member of the org, with JWT matching org leader', (done) => {
-      //   chai.request(address)
-      //     .del('/orgs/' + org1.id + '/users/' + user4.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(200);
+      it('should remove a member of team, with JWT matching team leader', (done) => {
+        chai.request(address)
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/users/' + user4.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .end((err, res) => {
+            expect(res).to.have.status(200);
 
-      //       models.Organization.findOne({
-      //         where: {id: org1.id},
-      //         include: [{
-      //           model: models.User,
-      //           where: {id: user4.id}
-      //         }]
-      //       })
-      //       .then((org) => {
-      //         expect(org).to.not.be.ok;
-      //         done();
-      //       });
-      //     });
-      // });
+            models.Team.findOne({
+              where: {id: team1.id},
+              include: [{
+                model: models.User,
+                where: {id: user4.id}
+              }]
+            })
+            .then((team) => {
+              expect(team).to.not.be.ok;
+              done();
+            });
+          });
+      });
 
-      // it('should send 401 if attempt is made to remove member, where JWT does not match org leader or user', (done) => {
-      //   chai.request(address)
-      //     .del('/orgs/' + org1.id + '/users/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user2Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(401);
-      //       done();
-      //     });
-      // });
+      it('should send 401 if attempt is made to remove member, where JWT does not match team leader or user', (done) => {
+        chai.request(address)
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/users/' + user1.id)
+          .set('Authorization', 'Bearer ' + user2Token)
+          .end((err, res) => {
+            expect(res).to.have.status(401);
+            done();
+          });
+      });
 
-      // it('should send 404 if org not found', (done) => {
-      //   chai.request(address)
-      //     .del('/orgs/' + (org1.id + 1000) + '/users/' + user1.id)
-      //     .set('Authorization', 'Bearer ' + user1Token)
-      //     .end((err, res) => {
-      //       expect(res).to.have.status(404);
-      //       done();
-      //     });
-      // });
+      it('should send 404 if org not found', (done) => {
+        chai.request(address)
+          .del('/orgs/' + (org1.id + 1000) + '/teams/' + team1.id + '/users/' + user1.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .end((err, res) => {
+            expect(res).to.have.status(404);
+            done();
+          });
+      });
+
+      it('should send 404 if team not found', (done) => {
+        chai.request(address)
+          .del('/orgs/' + org1.id + '/teams/' + (team1.id + 1000) + '/users/' + user1.id)
+          .set('Authorization', 'Bearer ' + user1Token)
+          .end((err, res) => {
+            expect(res).to.have.status(404);
+            done();
+          });
+      });
     });
   });
 });
