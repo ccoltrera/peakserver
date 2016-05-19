@@ -1,5 +1,5 @@
 'use strict';
-import bcrypt from 'bcrypt';
+var bcrypt = require('bcrypt');
 
 var models = require('../database/models');
 var jwtAuth = require('../auth/jwtAuth');
