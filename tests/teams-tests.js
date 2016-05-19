@@ -225,22 +225,25 @@ describe('/api/orgs/:org/teams', () => {
           expect(res).to.have.status(200);
           expect(res.body.name).to.eql(teamObj4.name);
 
-          models.Team.findOne({
-            where: {name: teamObj4.name},
+          models.Organization.findOne({
+            where: {id: org1.id},
             include: [{
-              model: models.User,
-              as: 'Leader'
+              model: models.Team,
+              where: {name: teamObj4.name},
+              include: [{
+                model: models.User
+              },{
+                model: models.User,
+                as: 'Leader'
+              }]
             }]
           })
-          .then((team) => {
-            expect(team).to.be.ok;
-            expect(team.dataValues.name).to.eql(teamObj4.name);
-            expect(team.Leader.email).to.eql(user2.email);
-            return team.getUsers();
-          })
-          .then((users) => {
-            expect(users.length).to.eql(1);
-            expect(users[0].dataValues.id).to.eql(user2.id);
+          .then((org) => {
+            expect(org).to.be.ok;
+            expect(org.Teams[0].dataValues.name).to.eql(teamObj4.name);
+            expect(org.Teams[0].Leader.email).to.eql(user2.email);
+            expect(org.Teams[0].Users.length).to.eql(1);
+            expect(org.Teams[0].Users[0].dataValues.id).to.eql(user2.id);
             done();
           })
         });
@@ -268,17 +271,6 @@ describe('/api/orgs/:org/teams', () => {
         });
     });
 
-    it('send a 404 error if org not found', (done) => {
-      chai.request(address)
-        .post('/orgs/' + (org1.id + 1000) + '/teams')
-        .set('Authorization', 'Bearer ' + user2Token)
-        .send(teamObj1)
-        .end((err, res) => {
-          expect(res).to.have.status(404);
-          done();
-        });
-    });
-
   });
 
   describe('GET', () => {
@@ -290,6 +282,7 @@ describe('/api/orgs/:org/teams', () => {
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.length).to.eql(1);
+          expect(res.body[0].name).to.eql(teamObj1.name);
 
           done();
         });

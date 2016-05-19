@@ -8,36 +8,35 @@ module.exports = (app) => {
   app.post('/api/users/:user/ranges', jwtAuth, (req, res) => {
     // See if user's JWT matches what they are trying to edit
     if (req.params.user == req.user.id) {
-      var newRangeInstance;
+      var newRangeInstance, userInstance;
 
       models.User
         .findOne({
-          where: { id: req.params.user },
-          include: [{
-            model: models.Range
-          }]
+          where: { id: req.params.user }
         })
         .then((user) => {
-          let ranges = user['dataValues']['Ranges'];
-          // Check through user's ranges, return 409 if already exists
-          for (let i = 0; i < ranges.length; i++) {
-            if (ranges[i].dataValues.name === req.body.name) {
-              return res.sendStatus(409);
-            }
-          }
-
-          // Else create the range
-          models.Range.create(req.body)
-          .then((range) => {
-            newRangeInstance = range;
-            // Associate the range with the user
-            return user.addRange(range);
-          })
-          .then(() => {
-            res.status(200).json(newRangeInstance);
+          userInstance = user;
+          return user.getRanges({
+            where: {name: req.body.name}
           });
-
-        });
+        })
+        .then((ranges) => {
+          if (ranges.length) {
+            // if there is a matching range
+            res.sendStatus(409);
+          } else {
+            // Else create the range
+            models.Range.create(req.body)
+            .then((range) => {
+              newRangeInstance = range;
+              // Associate the range with the user
+              return userInstance.addRange(range);
+            })
+            .then(() => {
+              res.status(200).json(newRangeInstance);
+            });
+          }
+        })
 
     } else {
       // If not, 401 status

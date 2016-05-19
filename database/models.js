@@ -38,7 +38,6 @@ Organization.belongsToMany(User, {through: 'OrganizationUser'});
 Organization.belongsTo(User, {as: 'Leader'});
 
 Team.belongsToMany(User, {through: 'TeamUser'});
-// for admin purposes
 Team.belongsTo(User, {as: 'Leader'});
 Team.belongsToMany(Endeavor, {through: 'TeamEndeavor'});
 
