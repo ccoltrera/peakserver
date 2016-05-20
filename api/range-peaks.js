@@ -7,8 +7,6 @@ module.exports = (app) => {
 
   app.post('/api/users/:user/ranges/:range/peaks', jwtAuth, (req, res) => {
     // See if user's JWT matches what they are trying to edit
-    if (req.params.user == req.user.id) {
-      var newPeakInstance;
 
       models.User
         .findOne({
@@ -19,35 +17,49 @@ module.exports = (app) => {
             include: [{
               model: models.RangePeak
             }]
+          },{
+            model: models.User,
+            as: 'Mentor'
           }]
         })
         .then((user) => {
-          let range = user['dataValues']['Ranges'][0];
-          let peaks = range['RangePeaks'];
-          // Check through range's peaks, return 409 if already exists
-          for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].dataValues.name === req.body.name) {
-              return res.sendStatus(409);
-            }
+          var mentorId;
+          if (user.Mentor) {
+            mentorId = user.Mentor.id;
           }
 
-          // Else create the peak
-          models.RangePeak.create(req.body)
-          .then((peak) => {
-            newPeakInstance = peak;
-            // Associate the peak with the user
-            return range.addRangePeak(peak);
-          })
-          .then(() => {
-            res.status(200).json(newPeakInstance);
-          });
+          if (req.user.id == req.params.user || req.user.id == mentorId) {
+            var newPeakInstance;
 
+            let range = user['dataValues']['Ranges'][0];
+            let peaks = range['RangePeaks'];
+            // Check through range's peaks, return 409 if already exists
+            for (let i = 0; i < peaks.length; i++) {
+              if (peaks[i].dataValues.name === req.body.name) {
+                return res.sendStatus(409);
+              }
+            }
+
+            // Else create the peak
+            models.RangePeak.create(req.body)
+              .then((peak) => {
+                newPeakInstance = peak;
+                // Associate the peak with the user
+                return range.addRangePeak(peak);
+              })
+              .then(() => {
+                return newPeakInstance.setCreator(req.user.id);
+              })
+              .then(() => {
+                res.status(200).json(newPeakInstance);
+              });
+
+          } else {
+            // If not, 401 status
+            res.sendStatus(401);
+          }
         });
 
-    } else {
-      // If not, 401 status
-      res.sendStatus(401);
-    }
 
   });
 

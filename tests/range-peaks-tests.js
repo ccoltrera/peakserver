@@ -11,7 +11,7 @@ import models from '../database/models';
 
 var address = 'http://localhost:3000/api';
 
-var user1, user2, user1Token, user2Token, range1, range2, peak1, peak3, peak4;
+var user1, user2, user3, user1Token, user2Token, user3Token, range1, range2, peak1, peak3, peak4;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
@@ -23,6 +23,12 @@ var userObj1 = {
 
 var userObj2 = {
   email: '2@range-peaks.com',
+  password: hashedPassword,
+  salt: '$2a$10$somethingheretobeasalt'
+};
+
+var userObj3 = {
+  email: '3@range-peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
@@ -49,6 +55,10 @@ var peakObj3 = {
 
 var peakObj4 = {
   name: 'range-peaks.peak4'
+};
+
+var peakObj5 = {
+  name: 'range-peaks.peak5'
 };
 
 // Create users with ranges and peaks needed for tests
@@ -96,6 +106,13 @@ before((done) => {
       return user2.addRange(id);
     })
     .then(() => {
+      return models.User.create(userObj3)
+    })
+    .then((user) => {
+      user3 = user;
+      return user2.setMentor(user3);
+    })
+    .then(() => {
       return models.RangePeak.create(peakObj4);
     })
     .then((peak) => {
@@ -112,6 +129,7 @@ before((done) => {
 before((done) => {
   user1Token = jwt.sign({id: user1.id}, 'server secret', {expiresIn: '120m'});
   user2Token = jwt.sign({id: user2.id}, 'server secret', {expiresIn: '120s'});
+  user3Token = jwt.sign({id: user3.id}, 'server secret', {expiresIn: '120s'});
   done();
 });
 
@@ -152,10 +170,35 @@ describe('/api/users/:user/ranges/:range/peaks', () => {
           expect(res).to.have.status(200);
           expect(res.body.name).to.eql(peakObj2.name);
 
-          range2.getRangePeaks()
+          range2.getRangePeaks({where: {name: peakObj2.name}})
             .then((peaks) => {
-              expect(peaks.length).to.eql(2);
-              done();
+              expect(peaks.length).to.eql(1);
+              peaks[0].getCreator()
+                .then((creator) => {
+                  expect(creator.email).to.eql(user2.email);
+                  done();
+                })
+            });
+        });
+    });
+
+    it('should add a peak to the db and associate it with the range, with a JWT that matches owning user\'s mentor', (done) => {
+      chai.request(address)
+        .post('/users/' + user2.id + '/ranges/' + range2.id + '/peaks')
+        .set('Authorization', 'Bearer ' + user3Token)
+        .send(peakObj5)
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body.name).to.eql(peakObj5.name);
+
+          range2.getRangePeaks({where: {name: peakObj5.name}})
+            .then((peaks) => {
+              expect(peaks.length).to.eql(1);
+              peaks[0].getCreator()
+                .then((creator) => {
+                  expect(creator.email).to.eql(user3.email)
+                  done();
+                })
             });
         });
     });

@@ -48,9 +48,10 @@ Range.hasMany(RangePeak);
 
 RangePeak.hasOne(RangePeakSA);
 RangePeak.hasOne(RangePeakFB);
-// RangePeak.hasOne(User, {as: 'Creator'}); // just track as self / mentor in string?
 
-// RangePeakFB.hasOne(User, {as: 'Giver'}); // just use the mentor
+RangePeak.belongsTo(User, {as: 'Creator'});
+
+// RangePeakFB.belongsTo(User, {as: 'Giver'}); // just use the mentor
 
 Endeavor.hasMany(EndeavorPeak);
 
