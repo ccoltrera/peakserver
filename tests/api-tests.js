@@ -24,6 +24,7 @@ import teamUsersTests from './team-users-tests';
 import endeavorsTests from './endeavors-tests';
 import endeavorPeaksTests from './endeavor-peaks-tests';
 import endeavorPeakFBTests from './endeavor-peak-fb-tests';
+import endeavorPeakSATests from './endeavor-peak-sa-tests';
 
 var server;
 

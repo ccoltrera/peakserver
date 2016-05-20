@@ -121,13 +121,17 @@ before((done) => {
     // create user2
     .then((org) => {
       org1 = org;
-      return models.User.create(userObj2)
+      return models.User.create(userObj2);
     })
-    // add user 1 and user2 to org1
+    // create user3
     .then((user) => {
       user2 = user;
-      peakObj2.user = user.id;
-      return org1.addUsers([user1, user2]);
+      return models.User.create(userObj3);
+    })
+    // add user1, user2, and user3 to org1
+    .then((user) => {
+      user3 = user;
+      return org1.addUsers([user1, user2, user3]);
     })
     // create team1
     .then(() => {
@@ -216,14 +220,6 @@ before((done) => {
       return fb3.setGiver(user1);
     })
     .then(() => {
-      done();
-    });
-});
-
-before((done) => {
-  models.User.create(userObj3)
-    .then((user) => {
-      user3 = user;
       done();
     });
 });
