@@ -398,7 +398,7 @@ describe('/api/orgs/:org/teams', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + team1.id)
           .set('Authorization', 'Bearer ' + user3Token)
-          .send({name: 'teams.org2.updated'})
+          .send({name: 'teams.team1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(401);
             done();
@@ -409,7 +409,7 @@ describe('/api/orgs/:org/teams', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + (team1.id + 1000))
           .set('Authorization', 'Bearer ' + user2Token)
-          .send({name: 'teams.org2.updated'})
+          .send({name: 'teams.team1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(404);
             done();
@@ -434,7 +434,7 @@ describe('/api/orgs/:org/teams', () => {
           });
       });
 
-      it('should delete a team in the db, with JWT matching org leader', (done) => {
+      it('should destroy a team in the db, with JWT matching org leader', (done) => {
         chai.request(address)
           .del('/orgs/' + org1.id + '/teams/' + team6.id)
           .set('Authorization', 'Bearer ' + user1Token)
@@ -449,7 +449,7 @@ describe('/api/orgs/:org/teams', () => {
           });
       });
 
-      it('should send 401 if attempt is made to delete team where JWT does not match org or team leader', (done) => {
+      it('should send 401 if JWT does not match org or team leader', (done) => {
         chai.request(address)
           .del('/orgs/' + org1.id + '/teams/' + team1.id)
           .set('Authorization', 'Bearer ' + user3Token)
