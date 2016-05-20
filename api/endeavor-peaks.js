@@ -74,6 +74,9 @@ module.exports = (app) => {
                         return endeavor.addEndeavorPeak(peak);
                       })
                       .then(() => {
+                        return peakInstance.setCreator(req.user.id);
+                      })
+                      .then(() => {
                         if (peakUser) {
                           return peakInstance.setUser(peakUser);
                         } else {

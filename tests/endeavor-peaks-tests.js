@@ -90,7 +90,6 @@ before((done) => {
     // create org1
     .then((user) => {
       user1 = user;
-      peakObj2.user = user.id;
       return models.Organization.create(orgObj1);
     })
     // create user2
@@ -101,6 +100,7 @@ before((done) => {
     // add user 1 and user2 to org1
     .then((user) => {
       user2 = user;
+      peakObj2.user = user.id;
       return org1.addUsers([user1, user2]);
     })
     // create team1
@@ -276,8 +276,12 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
             expect(peak.dataValues.name).to.eql(peakObj2.name);
             peak.getUser()
               .then((user) => {
-                expect(user.email).to.eql(user1.email);
-                done();
+                expect(user.email).to.eql(user2.email);
+                peak.getCreator()
+                  .then((creator) => {
+                    expect(creator.email).to.eql(user1.email);
+                    done();
+                  })
               })
           })
         });

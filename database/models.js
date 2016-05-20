@@ -59,7 +59,7 @@ EndeavorPeak.belongsTo(User, {as: 'Creator'});
 EndeavorPeak.hasOne(RangePeakSA);
 EndeavorPeak.hasOne(RangePeakFB);
 
-// EndeavorPeakFB.hasOne(User, {as: 'Giver'}); //
+EndeavorPeakFB.belongsTo(User, {as: 'Giver'}); //
 
 // connection.sync({force: true});
 
