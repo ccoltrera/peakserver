@@ -65,7 +65,7 @@ var peakObj1 = {
 
 // used for /peaks POST
 var peakObj2 = {
-  name: 'peaks.peak2'
+  name: 'peaks.peak2',
 };
 
 // used for /peaks/:peak POST
@@ -90,6 +90,7 @@ before((done) => {
     // create org1
     .then((user) => {
       user1 = user;
+      peakObj2.user = user.id;
       return models.Organization.create(orgObj1);
     })
     // create user2
@@ -263,16 +264,21 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
                 model: models.Endeavor,
                 where: {id: endeavor1.id},
                 include: [{
-                  model: models.Peak,
+                  model: models.EndeavorPeak,
                   where: {name: peakObj2.name}
                 }]
               }]
             }]
           })
           .then((org) => {
+            let peak = org.Teams[0].Endeavors[0].EndeavorPeaks[0];
             expect(org).to.be.ok;
-            expect(org.Teams[0].Endeavors[0].Peaks[0].dataValues.name).to.eql(peakObj2.name);
-            done();
+            expect(peak.dataValues.name).to.eql(peakObj2.name);
+            peak.getUser()
+              .then((user) => {
+                expect(user.email).to.eql(user1.email);
+                done();
+              })
           })
         });
     });
@@ -344,16 +350,20 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak3.id)
           .set('Authorization', 'Bearer ' + user1Token)
-          .send({name: 'peaks.peak3.updated', complete: true})
+          .send({name: 'peaks.peak3.updated', complete: true, user: user1.id})
           .end((err, res) => {
             expect(res).to.have.status(200);
             expect(res.body.name).to.eql('peaks.peak3.updated');
 
-            models.Peak.findById(endeavor3.id)
+            models.EndeavorPeak.findById(peak3.id)
               .then((peak) => {
                 expect(peak.dataValues.name).to.eql('peaks.peak3.updated');
                 expect(peak.dataValues.complete).to.eql(true);
-                done();
+                peak.getUser()
+                  .then((user) => {
+                    expect(user.email).to.eql(user1.email);
+                    done();
+                  })
               });
           });
       });
@@ -390,7 +400,7 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            models.Peak.findOne({where: {name: 'peaks.peak4'}})
+            models.EndeavorPeak.findOne({where: {name: 'peaks.peak4'}})
               .then((peak) => {
                 expect(peak).to.not.be.ok;
                 done();
