@@ -22,65 +22,65 @@ var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt'
 
 // member of org1, member of team1 (for POST, DEL)
 var userObj1 = {
-  email: '1@peaks.com',
+  email: '1@endeavor-peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 // member of org1 (for GET, unsuccessful POST and DEL)
 var userObj2 = {
-  email: '2@peaks.com',
+  email: '2@endeavor-peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 // not member of org 1 (for unsuccessful GET)
 var userObj3 = {
-  email: '3@peaks.com',
+  email: '3@endeavor-peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 //
 var orgObj1 = {
-  name: 'peaks.org1',
+  name: 'endeavor-peaks.org1',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 //
 var teamObj1 = {
-  name: 'peaks.team1'
+  name: 'endeavor-peaks.team1'
 };
 
 //
 var endeavorObj1 = {
-  name: 'peaks.endeavor1'
+  name: 'endeavor-peaks.endeavor1'
 };
 
 // used for GET
 var peakObj1 = {
-  name: 'peaks.peak1'
+  name: 'endeavor-peaks.peak1'
 };
 
 // used for /peaks POST
 var peakObj2 = {
-  name: 'peaks.peak2',
+  name: 'endeavor-peaks.peak2',
 };
 
 // used for /peaks/:peak POST
 var peakObj3 = {
-  name: 'peaks.peak3'
+  name: 'endeavor-peaks.peak3'
 };
 
 // used for /peaks/:peak DEL
 var peakObj4 = {
-  name: 'peaks.peak4'
+  name: 'endeavor-peaks.peak4'
 };
 
 // used for /peaks unsuccessful POST
 var peakObj5 = {
-  name: 'peaks.peak5'
+  name: 'endeavor-peaks.peak5'
 };
 
 // Create users, organization, team, and endeavors needed for tests
@@ -138,7 +138,7 @@ before((done) => {
       peak3 = peak;
       return models.EndeavorPeak.create(peakObj4);
     })
-    // add peak1, peak3, and peak4 to team1
+    // add peak1, peak3, and peak4 to endeavor
     .then((peak) => {
       peak4 = peak;
       return endeavor1.addEndeavorPeaks([peak1, peak3, peak4]);
@@ -166,35 +166,35 @@ before((done) => {
 
 // Clean up database
 after((done) => {
-  models.User.destroy({where: {email: {$like: '%@peaks.com'}}})
+  models.User.destroy({where: {email: {$like: '%@endeavor-peaks.com'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Organization.destroy({where: {name: {$like: 'peaks.org%'}}})
+  models.Organization.destroy({where: {name: {$like: 'endeavor-peaks.org%'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Team.destroy({where: {name: {$like: 'peaks.team%'}}})
+  models.Team.destroy({where: {name: {$like: 'endeavor-peaks.team%'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Endeavor.destroy({where: {name: {$like: 'peaks.endeavor%'}}})
+  models.Endeavor.destroy({where: {name: {$like: 'endeavor-peaks.endeavor%'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.EndeavorPeak.destroy({where: {name: {$like: 'peaks.peak%'}}})
+  models.EndeavorPeak.destroy({where: {name: {$like: 'endeavor-peaks.peak%'}}})
   .then(() => {
       done();
     });
@@ -354,14 +354,14 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak3.id)
           .set('Authorization', 'Bearer ' + user1Token)
-          .send({name: 'peaks.peak3.updated', complete: true, user: user1.id})
+          .send({name: 'endeavor-peaks.peak3.updated', complete: true, user: user1.id})
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body.name).to.eql('peaks.peak3.updated');
+            expect(res.body.name).to.eql('endeavor-peaks.peak3.updated');
 
             models.EndeavorPeak.findById(peak3.id)
               .then((peak) => {
-                expect(peak.dataValues.name).to.eql('peaks.peak3.updated');
+                expect(peak.dataValues.name).to.eql('endeavor-peaks.peak3.updated');
                 expect(peak.dataValues.complete).to.eql(true);
                 peak.getUser()
                   .then((user) => {
@@ -376,7 +376,7 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak1.id)
           .set('Authorization', 'Bearer ' + user2Token)
-          .send({name: 'peaks.peak1.updated'})
+          .send({name: 'endeavor-peaks.peak1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(401);
             done();
@@ -387,7 +387,7 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
         chai.request(address)
           .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + (peak1.id + 1000))
           .set('Authorization', 'Bearer ' + user1Token)
-          .send({name: 'peaks.peak1.updated'})
+          .send({name: 'endeavor-peaks.peak1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(404);
             done();
@@ -404,7 +404,7 @@ describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            models.EndeavorPeak.findOne({where: {name: 'peaks.peak4'}})
+            models.EndeavorPeak.findOne({where: {name: 'endeavor-peaks.peak4'}})
               .then((peak) => {
                 expect(peak).to.not.be.ok;
                 done();

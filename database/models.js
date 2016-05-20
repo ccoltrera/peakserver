@@ -57,8 +57,8 @@ Endeavor.hasMany(EndeavorPeak);
 
 EndeavorPeak.belongsTo(User);
 EndeavorPeak.belongsTo(User, {as: 'Creator'});
-EndeavorPeak.hasOne(RangePeakSA);
-EndeavorPeak.hasOne(RangePeakFB);
+EndeavorPeak.hasOne(EndeavorPeakSA);
+EndeavorPeak.hasOne(EndeavorPeakFB);
 
 EndeavorPeakFB.belongsTo(User, {as: 'Giver'}); //
 

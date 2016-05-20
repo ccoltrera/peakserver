@@ -16,7 +16,8 @@ var authAPI = require('./api/auth'),
   teamAPI = require('./api/teams'),
   teamUserAPI = require('./api/team-users'),
   endeavorsAPI = require('./api/endeavors'),
-  EndeavorPeaksAPI = require('./api/endeavor-peaks');
+  EndeavorPeaksAPI = require('./api/endeavor-peaks'),
+  EndeavorPeaksFBAPI = require('./api/endeavor-peak-fb');
 
 
 app.use(bodyParser.json());
@@ -33,5 +34,6 @@ teamAPI(app);
 teamUserAPI(app);
 endeavorsAPI(app);
 EndeavorPeaksAPI(app);
+EndeavorPeaksFBAPI(app);
 
 module.exports = app;
