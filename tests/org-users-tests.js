@@ -227,17 +227,6 @@ describe('/api/orgs/:org/users', () => {
         });
     });
 
-    it('send a 409 error if user already member of org', (done) => {
-      chai.request(address)
-        .post('/orgs/' + org1.id + '/users')
-        .set('Authorization', 'Bearer ' + user2Token)
-        .send({password: 'password'})
-        .end((err, res) => {
-          expect(res).to.have.status(409);
-          done();
-        });
-    });
-
     it('send a 401 error if password does not match that of org', (done) => {
       chai.request(address)
         .post('/orgs/' + org1.id + '/users')

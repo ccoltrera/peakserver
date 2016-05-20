@@ -42,18 +42,10 @@ module.exports = (app) => {
         // compare password to hashed one stored in db
         bcrypt.compare(req.body.password, org.password, function(err, bcryptRes) {
             if (bcryptRes) {
-              // check if user already a member of org
-              org.getUsers({where: {id: req.user.id}})
-                .then((users) => {
-                  if (users.length) {
-                    res.sendStatus(409);
-                  } else {
-                    org.addUser(req.user.id)
-                      .then((user) => {
-                        res.status(200).json(org);
-                      })
-                  }
-                })
+              org.addUser(req.user.id)
+                .then((user) => {
+                  res.status(200).json(org);
+                });
             } else {
               res.sendStatus(401);
             }
