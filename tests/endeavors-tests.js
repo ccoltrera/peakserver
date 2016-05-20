@@ -182,7 +182,7 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
   // /orgs/:org/teams/:team/endeavors GET
   describe('GET', () => {
-    it('should return a team\'s endeavors  that match the query string, with JWT that matches org member', (done) => {
+    it('should return a team\'s endeavors that match the query string, with JWT that matches org member', (done) => {
       chai.request(address)
         .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
         .set('Authorization', 'Bearer ' + user2Token)
