@@ -15,66 +15,72 @@ var user1, user2, user3,
     user1Token, user2Token, user3Token,
     org1,
     team1,
-    endeavor1, endeavor3, endeavor4;
+    endeavor1,
+    peak1, peak3, peak4;
 
 var hashedPassword = bcrypt.hashSync('password', '$2a$10$somethingheretobeasalt');
 
 // member of org1, member of team1 (for POST, DEL)
 var userObj1 = {
-  email: '1@endeavors.com',
+  email: '1@peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 // member of org1 (for GET, unsuccessful POST and DEL)
 var userObj2 = {
-  email: '2@endeavors.com',
+  email: '2@peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 // not member of org 1 (for unsuccessful GET)
 var userObj3 = {
-  email: '3@endeavors.com',
+  email: '3@peaks.com',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 //
 var orgObj1 = {
-  name: 'endeavors.org1',
+  name: 'peaks.org1',
   password: hashedPassword,
   salt: '$2a$10$somethingheretobeasalt'
 };
 
 //
 var teamObj1 = {
-  name: 'endeavors.team1'
+  name: 'peaks.team1'
+};
+
+//
+var endeavorObj1 = {
+  name: 'peaks.endeavor1'
 };
 
 // used for GET
-var endeavorObj1 = {
-  name: 'endeavors.endeavor1'
+var peakObj1 = {
+  name: 'peaks.peak1'
 };
 
-// used for /endeavors POST
-var endeavorObj2 = {
-  name: 'endeavors.endeavor2'
+// used for /peaks POST
+var peakObj2 = {
+  name: 'peaks.peak2'
 };
 
-// used for /endeavors/:endeavor POST
-var endeavorObj3 = {
-  name: 'endeavors.endeavor3'
+// used for /peaks/:peak POST
+var peakObj3 = {
+  name: 'peaks.peak3'
 };
 
-// used for /endeavors/:endeavor DEL
-var endeavorObj4 = {
-  name: 'endeavors.endeavor4'
+// used for /peaks/:peak DEL
+var peakObj4 = {
+  name: 'peaks.peak4'
 };
 
-// used for /endeavors unsuccessful POST
-var endeavorObj5 = {
-  name: 'endeavors.endeavor5'
+// used for /peaks unsuccessful POST
+var peakObj5 = {
+  name: 'peaks.peak5'
 };
 
 // Create users, organization, team, and endeavors needed for tests
@@ -113,19 +119,28 @@ before((done) => {
     .then(() => {
       return models.Endeavor.create(endeavorObj1);
     })
-    // create endeavor3
+    // add endeavor1 to team1
     .then((endeavor) => {
       endeavor1 = endeavor;
-      return models.Endeavor.create(endeavorObj3);
+      return team1.addEndeavor(endeavor1);
     })
-    .then((endeavor) => {
-      endeavor3 = endeavor;
-      return models.Endeavor.create(endeavorObj4);
+    // create peak1
+    .then(() => {
+      return models.EndeavorPeak.create(peakObj1);
     })
-    // add endeavor1, endeavor3, and endeavor4 to team1
-    .then((endeavor) => {
-      endeavor4 = endeavor;
-      return team1.addEndeavors([endeavor1, endeavor3, endeavor4]);
+    // create peak3
+    .then((peak) => {
+      peak1 = peak;
+      return models.EndeavorPeak.create(peakObj3);
+    })
+    .then((peak) => {
+      peak3 = peak;
+      return models.EndeavorPeak.create(peakObj4);
+    })
+    // add peak1, peak3, and peak4 to team1
+    .then((peak) => {
+      peak4 = peak;
+      return endeavor1.addEndeavorPeaks([peak1, peak3, peak4]);
     })
     .then(() => {
       done();
@@ -150,47 +165,54 @@ before((done) => {
 
 // Clean up database
 after((done) => {
-  models.User.destroy({where: {email: {$like: '%@endeavors.com'}}})
+  models.User.destroy({where: {email: {$like: '%@peaks.com'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Organization.destroy({where: {name: {$like: 'endeavors.org%'}}})
+  models.Organization.destroy({where: {name: {$like: 'peaks.org%'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Team.destroy({where: {name: {$like: 'endeavors.team%'}}})
+  models.Team.destroy({where: {name: {$like: 'peaks.team%'}}})
   .then(() => {
       done();
     });
 });
 
 after((done) => {
-  models.Endeavor.destroy({where: {name: {$like: 'endeavors.endeavor%'}}})
+  models.Endeavor.destroy({where: {name: {$like: 'peaks.endeavor%'}}})
   .then(() => {
       done();
     });
 });
 
-// /orgs/:org/teams/:team/endeavors
-describe('/api/orgs/:org/teams/:team/endeavors', () => {
+after((done) => {
+  models.EndeavorPeak.destroy({where: {name: {$like: 'peaks.peak%'}}})
+  .then(() => {
+      done();
+    });
+});
 
-  // /orgs/:org/teams/:team/endeavors GET
+// /orgs/:org/teams/:team/endeavors/:endeavor/peaks
+describe('/api/orgs/:org/teams/:team/endeavors/:endeavor/peaks', () => {
+
+  // /orgs/:org/teams/:team/endeavors/:endeavor/peaks GET
   describe('GET', () => {
-    it('should return a team\'s endeavors that match the query string, with JWT that matches org member', (done) => {
+    it('should return an endeavor\'s peaks that match query, with JWT that matches org member', (done) => {
       chai.request(address)
-        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
+        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks')
         .set('Authorization', 'Bearer ' + user2Token)
-        .query({name: {$like: endeavorObj1.name}})
+        .query({name: {$like: peakObj1.name}})
         .end((err, res) => {
           expect(res).to.have.status(200);
           expect(res.body.length).to.eql(1);
-          expect(res.body[0].name).to.eql(endeavorObj1.name);
+          expect(res.body[0].name).to.eql(peakObj1.name);
 
           done();
         });
@@ -198,9 +220,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
     it('should return 401, without JWT that matches org member', (done) => {
       chai.request(address)
-        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
+        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks')
         .set('Authorization', 'Bearer ' + user3Token)
-        .query({name: {$like: endeavorObj1.name}})
+        .query({name: {$like: peakObj1.name}})
         .end((err, res) => {
           expect(res).to.have.status(401);
 
@@ -208,9 +230,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
         });
     });
 
-    it('should return 404, if org / team combo not found', (done) => {
+    it('should return 404, if org / team / endeavor combo not found', (done) => {
       chai.request(address)
-        .get('/orgs/' + org1.id + '/teams/' + (team1.id + 1000) + '/endeavors')
+        .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + (endeavor1.id  + 1000) + '/peaks')
         .set('Authorization', 'Bearer ' + user1Token)
         .query({name: {$like: endeavorObj1.name}})
         .end((err, res) => {
@@ -221,16 +243,16 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
     });
   });
 
-  // /orgs/:org/teams/:team/endeavors POST
+  // /orgs/:org/teams/:team/endeavors/:endeavor/peaks POST
   describe('POST', () => {
-    it('should create a new endeavor belonging to team, if user a member', (done) => {
+    it('should create a new peak belonging to endeavor, if user a member', (done) => {
       chai.request(address)
-        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks')
         .set('Authorization', 'Bearer ' + user1Token)
-        .send(endeavorObj2)
+        .send(peakObj2)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body.name).to.eql(endeavorObj2.name);
+          expect(res.body.name).to.eql(peakObj2.name);
 
           models.Organization.findOne({
             where: {id: org1.id},
@@ -239,23 +261,27 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
               where: {id: team1.id},
               include: [{
                 model: models.Endeavor,
-                where: {name: endeavorObj2.name}
+                where: {id: endeavor1.id},
+                include: [{
+                  model: models.Peak,
+                  where: {name: peakObj2.name}
+                }]
               }]
             }]
           })
           .then((org) => {
             expect(org).to.be.ok;
-            expect(org.Teams[0].Endeavors[0].dataValues.name).to.eql(endeavorObj2.name);
+            expect(org.Teams[0].Endeavors[0].Peaks[0].dataValues.name).to.eql(peakObj2.name);
             done();
           })
         });
     });
 
-    it('send a 409 error if endeavor with that name already exists for team', (done) => {
+    it('send a 409 error if peak with that name already exists for team', (done) => {
       chai.request(address)
-        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks')
         .set('Authorization', 'Bearer ' + user1Token)
-        .send(endeavorObj1)
+        .send(peakObj1)
         .end((err, res) => {
           expect(res).to.have.status(409);
           done();
@@ -264,9 +290,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
     it('send a 401 error if JWT does not match member of team', (done) => {
       chai.request(address)
-        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors')
+        .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks')
         .set('Authorization', 'Bearer ' + user2Token)
-        .send(endeavorObj5)
+        .send(peakObj5)
         .end((err, res) => {
           expect(res).to.have.status(401);
           done();
@@ -275,25 +301,25 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
   });
 
-  // /orgs/:org/teams/:team/endeavors/:endeavor
-  describe('/:endeavor', () => {
+  // /orgs/:org/teams/:team/endeavors/:endeavor/peaks/:peak
+  describe('/:peak', () => {
 
-    // /orgs/:org/teams/:team/endeavors/:endeavor GET
+    // /orgs/:org/teams/:team/endeavors/:endeavor/peaks/:peak GET
     describe('GET', () => {
-      it('should get specific endeavor info with JWT that matches org member', (done) => {
+      it('should get specific peak info with JWT that matches org member', (done) => {
         chai.request(address)
-          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id)
+          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak1.id)
           .set('Authorization', 'Bearer ' + user2Token)
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body.name).to.eql(endeavor1.name);
+            expect(res.body.name).to.eql(peak1.name);
             done();
           });
       });
 
-      it('should return 404 status if no matching org / team / endeavor combo', (done) => {
+      it('should return 404 status if no matching org / team / endeavor / peak combo', (done) => {
         chai.request(address)
-          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + (endeavor1.id + 1000))
+          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + (peak1.id + 1000))
           .set('Authorization', 'Bearer ' + user2Token)
           .end((err, res) => {
             expect(res).to.have.status(404);
@@ -303,7 +329,7 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
       it('should return 401 status if JWT does not match org member', (done) => {
         chai.request(address)
-          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id)
+          .get('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak1.id)
           .set('Authorization', 'Bearer ' + user3Token)
           .end((err, res) => {
             expect(res).to.have.status(401);
@@ -312,20 +338,21 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
       });
     });
 
-    // /orgs/:org/teams/:team/endeavors/:endeavor POST
+    // /orgs/:org/teams/:team/endeavors/:endeavor/peaks/:peak POST
     describe('POST', () => {
-      it('should change endeavor info based on JSON, with JWT matching team member, send updated endeavor', (done) => {
+      it('should change peak info based on JSON, with JWT matching team member, send updated peak', (done) => {
         chai.request(address)
-          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor3.id)
+          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak3.id)
           .set('Authorization', 'Bearer ' + user1Token)
-          .send({name: 'endeavors.endeavor3.updated'})
+          .send({name: 'peaks.peak3.updated', complete: true})
           .end((err, res) => {
             expect(res).to.have.status(200);
-            expect(res.body.name).to.eql('endeavors.endeavor3.updated');
+            expect(res.body.name).to.eql('peaks.peak3.updated');
 
-            models.Endeavor.findById(endeavor3.id)
-              .then((endeavor) => {
-                expect(endeavor.dataValues.name).to.eql('endeavors.endeavor3.updated');
+            models.Peak.findById(endeavor3.id)
+              .then((peak) => {
+                expect(peak.dataValues.name).to.eql('peaks.peak3.updated');
+                expect(peak.dataValues.complete).to.eql(true);
                 done();
               });
           });
@@ -333,9 +360,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
       it('should send 401, when JWT does not match team member', (done) => {
         chai.request(address)
-          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id)
+          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak1.id)
           .set('Authorization', 'Bearer ' + user2Token)
-          .send({name: 'endeavors.endeavor1.updated'})
+          .send({name: 'peaks.peak1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(401);
             done();
@@ -344,9 +371,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
       it('should send 404, if org / team / endeavor combo does not exist', (done) => {
         chai.request(address)
-          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + (endeavor1.id + 1000))
+          .post('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + (peak1.id + 1000))
           .set('Authorization', 'Bearer ' + user1Token)
-          .send({name: 'endeavors.endeavor1.updated'})
+          .send({name: 'peaks.peak1.updated'})
           .end((err, res) => {
             expect(res).to.have.status(404);
             done();
@@ -354,18 +381,18 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
       });
     });
 
-    // /orgs/:org/teams/:team/endeavors/:endeavor DEL
+    // /orgs/:org/teams/:team/endeavors/:endeavor/peaks/:peak DEL
     describe('DELETE', () => {
       it('should destroy an endeavor in the db, with JWT matching team member', (done) => {
         chai.request(address)
-          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor4.id)
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak4.id)
           .set('Authorization', 'Bearer ' + user1Token)
           .end((err, res) => {
             expect(res).to.have.status(200);
 
-            models.Endeavor.findOne({where: {name: 'endeavors.endeavor4'}})
-              .then((endeavor) => {
-                expect(endeavor).to.not.be.ok;
+            models.Peak.findOne({where: {name: 'peaks.peak4'}})
+              .then((peak) => {
+                expect(peak).to.not.be.ok;
                 done();
               });
           });
@@ -373,7 +400,7 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
 
       it('should send 401 if JWT does not match team member', (done) => {
         chai.request(address)
-          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id)
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + peak1.id)
           .set('Authorization', 'Bearer ' + user2Token)
           .end((err, res) => {
             expect(res).to.have.status(401);
@@ -381,9 +408,9 @@ describe('/api/orgs/:org/teams/:team/endeavors', () => {
           });
       });
 
-      it('should send 404 if endeavor does not exist', (done) => {
+      it('should send 404 if peak does not exist', (done) => {
         chai.request(address)
-          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + (endeavor1.id + 1000))
+          .del('/orgs/' + org1.id + '/teams/' + team1.id + '/endeavors/' + endeavor1.id + '/peaks/' + (peak1.id + 1000))
           .set('Authorization', 'Bearer ' + user1Token)
           .end((err, res) => {
             expect(res).to.have.status(404);

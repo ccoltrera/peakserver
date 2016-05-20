@@ -22,6 +22,7 @@ import orgUsersTests from './org-users-tests';
 import teamsTests from './teams-tests';
 import teamUsersTests from './team-users-tests';
 import endeavorsTests from './endeavors-tests';
+import endeavorPeaksTests from './endeavor-peaks-tests';
 
 var server;
 
